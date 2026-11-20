@@ -160,6 +160,21 @@ svg text{font:12px "IBM Plex Sans",sans-serif;fill:var(--mute)}
 .gl dt{font-weight:500;padding:10px 0;border-top:1px solid var(--line)}.gl dd{margin:0;padding:10px 0;border-top:1px solid var(--line);color:var(--mute)}
 .search{width:100%;max-width:420px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--panel);font-size:16px}
 a{color:var(--pri)}
+.sec{margin-top:32px}.sec>h3{margin-bottom:12px}
+.prose{max-width:72ch;margin-bottom:12px}
+.jump{display:flex;gap:6px;margin:4px 0 8px;padding-bottom:4px}
+.jump a{flex:none;font-size:14px;color:var(--pri);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:var(--panel)}
+.jump a:hover{border-color:var(--pri)}
+.ticks2,.cross,.take ul{list-style:none;margin:0;padding:0;max-width:76ch}
+.ticks2 li,.cross li,.take li{position:relative;padding:8px 0 8px 26px;border-top:1px solid var(--line)}
+.ticks2 li:first-child,.cross li:first-child,.take li:first-child{border-top:0}
+.ticks2 li:before{content:"";position:absolute;left:4px;top:17px;width:8px;height:8px;border:2px solid var(--pri);border-radius:50%}
+.cross li:before{content:"";position:absolute;left:4px;top:19px;width:12px;height:2px;background:var(--acc)}
+.steps{margin:0;padding-left:22px;max-width:76ch}.steps li{padding:6px 0 6px 6px}
+.take{border:2px solid var(--pri);border-radius:8px;padding:18px 20px;background:var(--panel)}
+.take li:before{content:"\2713";position:absolute;left:2px;top:7px;color:var(--pri);font-weight:600}
+.lesson .gl{grid-template-columns:180px minmax(0,1fr)}
+@media(max-width:700px){.lesson .gl{grid-template-columns:minmax(0,1fr)}}
 .tabbar{display:none}
 .sample{font-size:13px;color:var(--mute)}
 @media(max-width:1100px){.lab,.cases{grid-template-columns:minmax(0,1fr)}.sticky{position:static}.learn{grid-template-columns:240px minmax(0,1fr)}}
@@ -537,6 +552,277 @@ const SOURCES=[
 
 </script>
 <script>
+/* ===== Lesson depth: overview, checklist, scenario, pitfalls, takeaways ===== */
+const EXT={
+m1a:{deep:["Criminals face a practical problem: large amounts of money they cannot explain. Spending it openly invites questions from banks, tax authorities and police. Laundering solves that problem by creating a paper trail that makes the money look earned, borrowed or inherited.",
+"The three-stage model is a teaching tool, not a legal test. Prosecutors do not need to show all three stages, and analysts rarely see a whole scheme from one bank. Your institution may only see one slice: the cash coming in, the wires going out, or the property purchase at the end. That slice is still worth reporting.",
+"Placement is where banks have the best chance of detection because the money is at its least disguised. Once funds have been layered through several institutions and jurisdictions, each individual transaction looks more ordinary, which is why monitoring for movement patterns matters as much as monitoring cash."],
+look:{t:"Signals by stage",i:["Placement: cash deposits inconsistent with the customer's business, deposits split across branches or days, purchases of money orders or cashier's checks with cash.","Layering: funds received and sent on within days, transfers between accounts with no business reason, wires through several countries, conversion between cash, wires, crypto and other assets.","Integration: large purchases (property, vehicles, luxury goods) funded from recently layered money, loan repayments far above declared income, company 'profits' with no visible operations."]},
+scen:{s:"A used-car dealer deposits $6,000 to $9,000 in cash most days. A week later, round-sum wires go to a holding company in another state, which then pays the dealer's owner a monthly 'management fee'.",st:["Placement: the daily cash deposits are the entry point. Compare their size and frequency with what a dealer of that size would take in cash.","Layering: the round-sum wires to a holding company add distance. Ask what services the holding company provides and whether it has staff or premises.","Integration: the management fee gives the owner what looks like a salary. Check whether the fee matches any real service and whether it is taxed as income.","Conclusion: each step can be legitimate alone, but together the flow has the shape of a laundering cycle and warrants investigation."]},
+pit:["Trying to label every transaction with a stage instead of describing what happened.","Assuming laundering always involves cash. Fraud proceeds often start as electronic payments.","Dismissing activity because only one stage is visible at your bank."],
+terms:["Placement","Layering","Integration"],
+take:["Laundering gives illicit money a believable history.","Placement is the most exposed stage; layering hides the trail; integration makes money usable.","You only need to recognise unusual activity, not reconstruct the whole scheme."]},
+
+m1b:{deep:["Every laundering case starts with another crime. Laws call this the predicate offence or 'specified unlawful activity'. The list is long and covers most serious crimes, including fraud, bribery, drug and weapons trafficking, smuggling, sanctions violations, tax evasion in many cases, and cybercrime such as ransomware.",
+"Analysts benefit from knowing which predicates are common in their customer base. A bank with many small business customers sees more commingled cash; a bank active in digital payments sees more scam proceeds and mule accounts. Typologies follow the money source.",
+"The national priorities matter because examiners expect a bank's risk assessment, scenarios and training to reflect them. When you see activity that touches a priority area, such as human trafficking or corruption, it often deserves particular care and may have a specific FinCEN advisory with key terms to use."],
+look:{t:"Common predicate offences and what they look like in an account",i:["Fraud and scams: incoming payments from many victims, rapid onward transfers, new accounts opened with stolen or synthetic identities.","Drug trafficking: cash-heavy activity, funnel accounts, deposits in border or source regions.","Corruption: payments to officials or their relatives, consulting fees with no deliverables, wealth far above public salaries.","Human trafficking: payments for multiple people's travel or lodging, frequent small cash deposits at odd hours, online classified ad payments.","Cybercrime: ransom payments, crypto purchases directed by a third party, account takeover followed by fast transfers."]},
+pit:["Feeling you must name the crime before escalating. Describe the activity and let investigators determine the predicate.","Ignoring small-value fraud patterns. Many mule and scam schemes run on small amounts."],
+terms:["Predicate offence","Money mule"],
+take:["Every laundering case rests on an underlying crime.","Fraud is the largest source of illicit proceeds in the US.","National priorities shape what examiners expect your program to focus on."]},
+
+m1c:{deep:["Terrorist groups need money for operations, recruitment, propaganda, travel and supporting members' families. Unlike most criminal organisations, they may raise it from entirely legitimate sources, which removes the usual starting point of 'where did this money come from?'.",
+"Because amounts can be small, individual transactions rarely breach thresholds. Detection depends on context: the beneficiary, the corridor, the timing relative to travel, and links between seemingly unrelated customers sending money to the same person.",
+"Proliferation financing, which funds weapons of mass destruction programmes, shares many features with terrorist financing and is closely tied to sanctions. It often uses front companies and dual-use goods, so trade documentation is central."],
+look:{t:"Indicators that call for a closer look",i:["Several unrelated customers sending funds to the same individual or charity abroad.","Funds collected domestically and moved through money services businesses or informal value transfer systems to regions near active conflict.","A charity whose donations are spent overseas with little documentation of programmes.","A customer liquidating assets, taking out loans or maxing credit lines shortly before international travel.","Use of personal accounts to collect donations for an unregistered cause."]},
+scen:{s:"A small community charity receives many donations of $20 to $200. Each month it wires most of the balance to a single individual in a neighbouring country, described as a 'field coordinator'.",st:["Establish the charity's stated mission, registration and whether it publishes programme spending.","Assess the beneficiary: an individual rather than an organisation, with no documented role.","Compare spending against the mission: are there invoices, project reports or partner agreements?","Disposition: the pattern is unexplained, so investigate further and escalate if documentation does not support the transfers. Do not rely on the community or region involved as a factor."]},
+pit:["Treating nationality, religion or charitable giving as indicators.","Overlooking small transfers because they fall below thresholds.","Forgetting to screen beneficiaries and charities against sanctions lists."],
+terms:["PEP","Smurfing"],
+take:["Terrorist financing hides destination, not origin.","Small amounts matter in aggregate.","Behaviour, not identity, drives the assessment."]},
+
+m1d:{deep:["Gatekeeping means more than refusing obviously criminal customers. It means building enough understanding of each relationship that unusual activity stands out, then reporting it so law enforcement can connect it with other information.",
+"SARs are one of the most valuable intelligence sources available to US law enforcement. A single SAR rarely solves a case, but SARs from several banks about the same subjects can reveal a network. That is why a clear, factual SAR narrative from one analyst can matter well beyond the bank.",
+"Enforcement actions over the past decade show recurring failures: alerts left unreviewed for months, thresholds set to manage workload rather than risk, weak customer information, and SARs filed late or without useful detail. Each of these is something an analyst can help prevent."],
+look:{t:"How each line contributes",i:["First line (business and operations): onboards customers, collects KYC, flags unusual requests, often triages alerts.","Second line (compliance and risk): sets policy, runs monitoring and screening, investigates, decides on SARs, trains staff.","Third line (internal audit): independently tests whether controls are designed well and actually work."]},
+pit:["Thinking compliance alone owns AML. Front-line staff are often the first to notice something odd.","Measuring success by alerts closed rather than by quality of decisions."],
+terms:["SAR","Case"],
+take:["Banks are where laundering becomes visible.","SARs are valuable intelligence, especially when combined across banks.","Weak alert handling is a common cause of enforcement action."]},
+
+m2a:{deep:["The BSA is a reporting and recordkeeping law. It does not make laundering illegal on its own; it ensures that the records needed to trace money exist and that suspicious activity is reported. The criminal offence of laundering comes from the Money Laundering Control Act.",
+"Regulations under the BSA turn broad statutory duties into specific obligations: which institutions are covered, what reports are due and when, and what an AML program must contain. Guidance and FAQs explain how regulators interpret those rules, but they do not carry the same legal force.",
+"The AML Act of 2020 pushed the system toward effectiveness: national priorities, attention to technology and innovation, whistleblower protections and stronger penalties for repeat violators. FinCEN's 2026 proposed program rule continues that direction."],
+look:{t:"The five pillars of a bank AML/CFT program",i:["A system of internal controls: policies, procedures, monitoring and screening proportionate to risk.","Independent testing by audit or a qualified outside party.","A designated BSA/AML officer with authority and resources.","Ongoing training for relevant staff.","Risk-based customer due diligence, including beneficial ownership for legal entities."]},
+pit:["Confusing guidance with law. Guidance shows expectations; regulations create obligations.","Assuming the BSA only applies to banks. Money services businesses, casinos, broker-dealers and others are covered too."],
+terms:["BSA","FinCEN"],
+take:["The BSA creates records and reports; the 1986 Act criminalises laundering.","Programs rest on five pillars.","Regulators expect programs that are effective, not just documented."]},
+
+m2b:{deep:["CTRs are automatic and objective: if cash over $10,000 moves in a business day, a CTR is filed, whatever the customer's reputation. Some long-standing business customers can be exempted under specific rules, but monitoring continues.",
+"SARs are judgement-based. The legal standard is that the bank knows, suspects or has reason to suspect the activity involves illicit funds, is designed to evade BSA requirements, has no business or apparent lawful purpose, or uses the bank to facilitate crime. Thresholds vary by situation: $5,000 where a suspect can be identified, $25,000 regardless of whether a suspect is identified, and any amount for insider abuse.",
+"Structuring is often misunderstood. A deposit of $9,500 is not structuring. Structuring is the deliberate splitting or timing of cash to avoid a report, which you usually infer from a pattern: repeated just-under amounts, multiple branches, or a customer who reduces a deposit after learning about the CTR."],
+look:{t:"Key numbers to remember",i:["$10,000: CTR threshold for cash in a business day (aggregated).","15 days: CTR filing deadline.","$5,000 and $25,000: common SAR thresholds for banks (with and without an identified suspect).","30 days (up to 60): initial SAR deadline after detection.","$3,000: funds transfer and monetary instrument recordkeeping thresholds.","5 years: general BSA record retention."]},
+scen:{s:"A teller tells a customer that a $12,000 cash deposit will require a form. The customer takes back $3,000 and deposits $9,000, then returns the next day with $3,000.",st:["The customer changed the transaction after learning of the reporting requirement. That is a strong structuring indicator.","Aggregation: two business days, so a CTR may not be triggered, but intent to evade is the key issue.","The teller should not discuss SARs or suggest how to avoid the CTR.","Disposition: escalate for SAR consideration with the teller's observation documented."]},
+pit:["Treating every just-under-$10,000 deposit as structuring.","Telling a customer how to avoid a CTR, which can itself facilitate structuring.","Discussing a SAR with the customer or colleagues who do not need to know."],
+terms:["CTR","SAR","Aggregation","Structuring","Tipping off","Safe harbor"],
+take:["CTRs are routine; SARs require judgement.","Structuring is about intent to evade, shown by patterns and behaviour.","Never tip off; deadlines start at detection."]},
+
+m2c:{deep:["Section 314(a) requests come from FinCEN on behalf of law enforcement, usually every two weeks. Banks must search specified records for named subjects and report positive matches within a set time. The request itself is confidential.",
+"Section 314(b) is voluntary. Institutions register with FinCEN and can then share information about customers or transactions that may involve laundering or terrorist financing. The safe harbor protects the sharing institution from liability for the disclosure.",
+"314(b) is valuable when a case depends on what happens at the other bank: whether the counterparty is a mule account, whether funds were moved on, or whether the same pattern appears there."],
+look:{t:"When to consider a 314(b) request",i:["Funds flow to or from another institution and the purpose cannot be established.","You suspect a network of accounts across banks, such as mules.","A counterparty's identity or business cannot be verified from your records."]},
+pit:["Disclosing a 314(a) request to the customer.","Assuming 314(b) lets you share SARs. SAR confidentiality still applies."],
+terms:["314(a) / 314(b)"],
+take:["314(a) is mandatory searching for law enforcement subjects.","314(b) is voluntary sharing with legal protection.","Neither allows disclosure of a SAR."]},
+
+m3a:{deep:["Identification has two parts: collecting information and verifying it. Collection is what the customer tells you. Verification is checking it against something reliable, such as an unexpired government ID, a credit bureau, public records or a registration certificate.",
+"Remote onboarding raises the stakes because synthetic and stolen identities are common. Banks use document authentication, liveness checks and data matching. Analysts often see the consequences later, when an account opened with a weak identity becomes a mule or fraud account.",
+"For businesses, check that the entity is active and in good standing, that its address is a real place of business, and that the people opening the account have authority to do so."],
+look:{t:"Identity red flags",i:["Information that conflicts across sources, such as an SSN issued before the stated date of birth.","Addresses that are mail drops, virtual offices or shared by many unrelated customers.","Several accounts opened with the same phone number, email or device.","Reluctance to provide information or offering only copies of documents.","A business registered very recently with no online presence, opening an account expecting high volumes."]},
+pit:["Treating a successful ID check as the end of due diligence.","Ignoring small inconsistencies that later turn out to be synthetic identity signs."],
+terms:["CDD"],
+take:["Collect, then verify.","Existence, ownership and control are different questions for businesses.","Weak onboarding shows up later as mule and fraud alerts."]},
+
+m3b:{deep:["Ownership matters because the person who benefits from an account is not always the person who signs for it. Criminals use companies, trusts and nominees to keep their names off records.",
+"The control prong exists because ownership can be spread thinly. A company with five 20% owners has no 25% owner, but someone still runs it, such as a CEO or managing member, and that person must be identified.",
+"When structures are complex, ask why. Legitimate reasons include tax planning, investment pooling and family succession. Unexplained layers, especially through secrecy jurisdictions, raise risk and call for documentation."],
+look:{t:"Ownership red flags",i:["Owners who are nominees, such as directors of hundreds of companies.","Ownership through bearer shares or trusts with undisclosed beneficiaries.","Frequent ownership changes with no business explanation.","Owners resident in high-risk jurisdictions with no link to the business's operations.","Reluctance to explain who ultimately benefits."]},
+scen:{s:"An LLC opening an account lists two owners at 24% each and a holding company at 52%. The holding company is registered offshore.",st:["Neither individual meets the 25% threshold, so look through the holding company to its owners.","Identify the control person, such as the managing member.","Ask for the holding company's ownership documents and the business reason for the structure.","If ownership cannot be established, escalate for EDD before relying on the relationship."]},
+pit:["Stopping at the first layer of ownership.","Recording 'no beneficial owner' when no one meets 25%, instead of identifying the control person."],
+terms:["Beneficial owner"],
+take:["Identify every 25%+ owner and one control person.","Look through holding companies.","Complex structures need a clear rationale."]},
+
+m3c:{deep:["A risk rating summarises how much attention a customer needs. It typically combines customer type, occupation or industry, geography, products and channels, and expected activity. Higher ratings mean more frequent reviews and closer monitoring.",
+"The expected activity profile is the analyst's most-used piece of KYC. It should give rough values and volumes, typical counterparties and countries, and the products used. When it is vague, every alert takes longer and decisions are harder to defend.",
+"Risk ratings should move. A customer rated low at onboarding can become high after adverse news or a change in business, and a high-risk customer can be lowered after years of consistent, well-understood activity."],
+look:{t:"Questions a good profile answers",i:["What does the customer do, and how do they earn money?","Roughly how much comes in and goes out each month?","Which channels: cash, wires, ACH, cards, checks, P2P?","Who are the typical counterparties, and where are they?","Is any international activity expected, and with which countries?"]},
+pit:["Accepting 'personal use' or 'general business' as a purpose.","Never updating a profile after the customer's circumstances change."],
+terms:["CDD","EDD"],
+take:["The profile is the baseline for every alert.","Specific profiles make decisions faster and more defensible.","Ratings change with circumstances."]},
+
+m3d:{deep:["EDD asks deeper questions where risk is higher. The goal is to understand the relationship well enough to monitor it sensibly and to recognise when activity departs from the legitimate pattern.",
+"Source of funds and source of wealth are often confused. Source of funds is about a particular transaction: this $200,000 came from the sale of a house. Source of wealth is about the person: they built their wealth from 20 years running a construction firm. Both should be plausible and, where risk is high, evidenced.",
+"EDD outcomes include accepting the relationship with conditions, restricting products, increasing monitoring, or declining or exiting. These decisions follow the institution's risk appetite and governance."],
+look:{t:"Typical EDD evidence",i:["Tax returns, audited financial statements or business licences.","Property or sale documents explaining a large inflow.","Corporate documents showing ownership and control.","Site visits or photographs for cash-intensive businesses.","Adverse media and sanctions screening on owners and key counterparties."]},
+pit:["Collecting documents without reading whether they actually explain the activity.","Treating EDD as a reason to refuse all high-risk customers."],
+terms:["EDD","Source of funds","Source of wealth","PEP"],
+take:["EDD is deeper understanding, not automatic rejection.","Source of funds is a transaction; source of wealth is a lifetime.","Documents must actually reconcile to the activity."]},
+
+m4a:{deep:["Sanctions are foreign policy and national security tools. They target countries, regimes, terrorists, narcotics traffickers, cyber actors and others. Programmes differ: some block everything, others restrict only certain dealings.",
+"Because liability is strict, a bank can violate sanctions without knowing it. OFAC considers the strength of a compliance programme when deciding penalties, so effective screening, escalation and record-keeping reduce exposure.",
+"Screening covers customers, owners, signatories and transaction parties, including beneficiaries, intermediary banks, vessels and addresses in payment messages. Lists change often, so screening must be ongoing, not only at onboarding."],
+look:{t:"Sanctions evasion signs",i:["Payment details stripped or altered, such as vague beneficiary names or missing addresses.","Routing through third countries with no link to the trade.","Front companies recently formed with owners linked to sanctioned jurisdictions.","Goods or vessels associated with sanctioned trades.","Ownership structures that keep a sanctioned person just below 50%."]},
+pit:["Checking only direct names and not ownership.","Releasing a payment before a potential match is resolved."],
+terms:["OFAC","SDN List","50 Percent Rule"],
+take:["Sanctions liability is strict.","Aggregate ownership by blocked persons at 50% or more blocks the entity.","Block or reject and report on time."]},
+
+m4b:{deep:["Screening tools use fuzzy matching to catch spelling variants, transliterations and reordered names. That catches more true matches but creates many false ones. The analyst's job is to resolve each hit quickly and defensibly.",
+"Resolution is evidence-based: compare as many identifiers as available and record what matched and what did not. A clear rule of thumb is that one strong discrepancy, such as a different date of birth, usually rules out an individual match, but similar names with no other data cannot be ruled out.",
+"Good documentation lets someone else understand your decision without redoing it. It should name the list entry, the identifiers compared and the reason for the outcome."],
+look:{t:"Resolution checklist",i:["Name: full match, partial, alias or transliteration?","Date and place of birth or incorporation.","Nationality, residence and address.","ID or registration numbers.","Profession, business line and associated parties.","For payments: the role of the party, the corridor and the goods or services."]},
+scen:{s:"A wire beneficiary named 'A. Karimov Trading' hits on an SDN entry for 'Karimov Trading LLC', registered in a sanctioned jurisdiction.",st:["Compare the beneficiary's address and country with the SDN entry.","Check the beneficiary bank and any registration number in the payment.","Review the customer's relationship with this beneficiary and prior payments.","If identifiers match or cannot be distinguished, hold and escalate. If the address and registration clearly differ, document the false positive and release."]},
+pit:["Clearing a hit because the name is 'common'.","Asking the customer if they are the sanctioned party."],
+terms:["False positive","SDN List"],
+take:["Compare identifiers, not just names.","Hold when in doubt.","Document so others can follow your reasoning."]},
+
+m4c:{deep:["PEPs carry risk because their position gives them access to public funds and decisions that can be sold. Their family and close associates can be used to hold assets. The risk persists for some time after they leave office.",
+"Adverse media screening adds information that formal lists do not. It must be handled carefully: stories can be wrong, outdated or about someone else. The status of the matter (allegation, charge, conviction, acquittal) changes how much weight it carries.",
+"When adverse media is relevant and credible, it may lead to EDD, a higher risk rating, a SAR if it connects to account activity, or exit, depending on policy."],
+look:{t:"Corruption red flags in PEP activity",i:["Wealth or transfers far above known public salary.","Payments from government contractors or state-owned entities.","Use of relatives or associates to hold accounts or assets.","Consulting fees with no clear services.","Funds routed through secrecy jurisdictions or shell companies."]},
+pit:["Exiting every PEP automatically.","Recording an allegation as a conviction.","Using tabloid or anonymous sources as evidence."],
+terms:["PEP","OSINT"],
+take:["PEP status is a risk factor, not guilt.","Weigh media by source, date and legal status.","Corruption often shows as wealth that does not fit the role."]},
+
+m4d:{deep:["Country risk combines several factors: the strength of AML laws and supervision, corruption levels, organised crime, terrorism exposure, financial secrecy and sanctions. Banks often build their own country risk rating from public indicators.",
+"The FATF lists are authoritative but narrow. Many higher-risk countries are not on either list, and listed countries still host legitimate business. Use the lists as one input, alongside the customer's reason for the activity.",
+"Corridors matter: a payment's origin, every intermediary and its destination. A transfer from a low-risk country that passes through a high-risk one without reason is itself a signal."],
+look:{t:"Geographic red flags",i:["Activity with countries unrelated to the customer's business or family.","A sudden new corridor or spike in volume to one country.","Funds routed through several jurisdictions without explanation.","Counterparties registered in secrecy havens with no operations.","Cash brought from or sent to border regions."]},
+pit:["Rejecting all payments to grey-list countries.","Ignoring intermediaries in the payment chain."],
+terms:["FATF","Grey list"],
+take:["Geography is one factor, never the whole case.","Check current FATF and OFAC status.","Look at the whole corridor, not just the endpoint."]},
+
+m5a:{deep:["A monitoring system is only as good as its inputs. Banks map every product and transaction type into the system and test that mappings are complete. A gap, such as a new P2P product that was never mapped, means that activity is invisible to scenarios.",
+"Rules are transparent and easy to explain to examiners. Behavioural and machine learning models can find unusual combinations rules miss, but they must be explainable enough that analysts and validators understand why an alert fired.",
+"Alert consolidation brings related alerts on the same customer, household or network into one case. This saves time and gives analysts the full picture, but it requires good entity resolution so that the right accounts are linked."],
+look:{t:"Data checks before trusting a scenario",i:["Are all products and channels mapped?","Are country, counterparty and transaction type fields populated?","Are customer segments and risk ratings current?","Do reconciliations show the same volumes as core banking?"]},
+pit:["Assuming a quiet scenario means no risk; it may mean missing data.","Overlooking related accounts held under different customer IDs."],
+terms:["Alert","Case","Scenario"],
+take:["Bad data means blind spots.","Rules and models complement each other.","Cases group alerts so analysts see the whole customer."]},
+
+m5b:{deep:["Each scenario targets a typology and should have a documented rationale: what risk it addresses, why the parameters were chosen and which customers it covers.",
+"Parameters interact. A structuring scenario with a low amount floor and a long window catches more but floods analysts. A high floor and short window is quiet but easy to evade. Tuning finds a balance supported by data.",
+"Segmentation lets the same scenario behave sensibly across very different customers. Typical segments include retail individuals, small businesses, commercial clients, money services businesses and correspondent banks."],
+look:{t:"Common scenario families",i:["Cash: large cash, structuring, cash velocity.","Movement: rapid in and out, pass-through, round-tripping.","Counterparty: many senders or receivers, new beneficiaries.","Geography: high-risk countries, new corridors.","Profile: activity versus expected values, peer comparison.","Account events: dormancy, sudden balance changes, changes in signatories."]},
+pit:["Setting thresholds to control workload rather than risk.","Applying one threshold to every customer type."],
+terms:["Scenario","Precision"],
+take:["Every scenario needs a documented rationale.","Parameters trade coverage against noise.","Segmentation makes thresholds sensible."]},
+
+m5c:{deep:["Tuning starts with data: how many alerts each scenario produces, how many become cases and SARs, and what analysts wrote when closing them. Scenarios with near-zero productivity may be mis-designed, mis-mapped or simply targeting rare risk.",
+"Below-the-line testing samples activity just under thresholds and has it reviewed. If reviewers find suspicious activity there, raising the threshold would lose it; if not, raising it may be safe.",
+"Model governance documents every change: who approved it, the testing behind it, and its effect. Examiners will ask why a threshold changed and whether the bank considered what it might miss."],
+look:{t:"Tuning metrics",i:["Alert volume by scenario and segment.","Alert-to-case and alert-to-SAR conversion.","Below-the-line findings.","Recurring false-positive reasons recorded by analysts.","Time to disposition and backlog."]},
+scen:{s:"A rapid movement scenario generates 300 alerts a month, with only 2 SARs. Most closures say 'payroll company, documented model'.",st:["Confirm the explanation is consistent across closures.","Consider a segment for payroll and treasury customers with different parameters.","Run below-the-line testing on the proposed change.","Document the rationale, approval and post-change review."]},
+pit:["Raising thresholds without below-the-line testing.","Closing alerts with inconsistent or vague reasons that cannot support tuning."],
+terms:["Tuning","Below-the-line testing","Precision"],
+take:["Tune with evidence, not workload.","Test what you would miss.","Document every change."]},
+
+m5d:{deep:["Triage is a quick first pass: is the alert a duplicate, already covered by an open case, or explained by information on file? Investigation is the full review when it is not.",
+"Service levels protect the SAR timeline. If detection is considered to happen when the alert is reviewed, delays in reviewing still create risk, and examiners look at alert ageing closely.",
+"Quality assurance checks samples of decisions and gives feedback. Common QA findings include missing review of related accounts, unsupported closure reasons and narratives that do not answer the basic questions."],
+look:{t:"What QA reviewers look for",i:["Was the alert understood and the right period reviewed?","Was KYC compared with activity?","Were related parties and accounts considered?","Is the disposition supported by documented facts?","Is the narrative clear, factual and complete?"]},
+pit:["Rushing closures to meet targets.","Leaving alerts unassigned or ageing without escalation."],
+terms:["Alert","Case","False positive"],
+take:["Triage fast, investigate properly.","Ageing alerts are a regulatory risk.","QA feedback improves everyone's work."]},
+
+m6a:{deep:["Cash is still the easiest way to place illicit funds because it carries no record of where it came from. Criminals try to keep each deposit below attention by splitting amounts, using several people or locations, or hiding cash inside a real business.",
+"Commingling is difficult to detect because the business is real. Analysts compare reported cash with what the business could plausibly generate: seating, opening hours, card mix, seasonality and peer businesses.",
+"Funnel accounts move value geographically. Deposits happen in one area, often near the source of drugs or smuggled goods, and withdrawals happen near where proceeds are needed."],
+look:{t:"Cash red flags",i:["Repeated deposits just below $10,000 or another known threshold.","Cash deposits at multiple branches on the same day.","Third parties depositing into an account they do not own.","Cash revenue that is much higher or steadier than similar businesses.","Deposits in one region and withdrawals in another within a short time."]},
+pit:["Flagging every cash-heavy business as suspicious.","Missing smurfing because each deposit is small."],
+terms:["Structuring","Smurfing","Funnel account"],
+take:["Cash hides origin, so patterns matter.","Compare business cash with what is plausible.","Watch where cash goes in and where it comes out."]},
+
+m6b:{deep:["Movement typologies aim to break the trail. The faster money moves and the more accounts it passes through, the harder it is to follow, which is why speed with little retention is a key indicator.",
+"Shell companies exist only on paper. They may be legal, but when used for laundering they have no employees, no premises and no real trade, and their accounts show money in and out without operating costs.",
+"Dormant accounts are attractive because they have history and appear trustworthy. Account takeover, sold accounts and recruited mules all show up as sudden activity on a quiet account."],
+look:{t:"Movement red flags",i:["Most incoming funds leave within days.","Round amounts and payment descriptions that are vague or repetitive.","Entities with no payroll, rent, utilities or suppliers.","Funds returning to the origin disguised as loans or investments.","A long-quiet account suddenly handling large values."]},
+pit:["Treating every fast-moving account as suspicious; payroll and treasury accounts move fast by design.","Missing that a counterparty is a related company."],
+terms:["Pass-through","Layering"],
+take:["Speed plus low retention is a key signal.","Shells have no operating footprint.","Dormant reactivation needs an explanation."]},
+
+m6c:{deep:["Mule networks are the infrastructure of fraud. Scammers need accounts to receive victims' money and move it on before it can be recovered, and they recruit people through fake jobs, romance scams and social media offers.",
+"Some mules know exactly what they are doing; others believe they are working for a real company or helping a partner. The account activity can look identical either way, which is why narratives should describe facts and avoid conclusions about intent.",
+"Speed matters. Funds often leave a mule account within hours. Banks that detect early may be able to freeze or return victims' money under their policies."],
+look:{t:"Mule red flags",i:["Many incoming transfers from unrelated people.","Inflows far above the customer's known income.","Quick cash withdrawals, crypto purchases or onward wires after receipt.","New account or newly reactivated account with this pattern.","Customer explanations involving a new job 'processing payments' or helping someone met online."]},
+scen:{s:"A newly opened account belonging to a 19-year-old receives 12 transfers of $400 to $900 from different people over five days. Within hours of each, funds are sent to a crypto exchange.",st:["Compare with the profile: student, minimal expected activity.","Note the senders have no visible link to the customer or each other.","Rapid conversion to crypto removes funds from the banking system.","Disposition: escalate for SAR consideration; consider fraud team referral and account restrictions under policy."]},
+pit:["Concluding the customer is a knowing criminal.","Waiting too long to act while funds keep moving."],
+terms:["Money mule","Pass-through"],
+take:["Mules move fraud proceeds.","Facts, not assumptions about intent.","Early action can protect victims."]},
+
+m6d:{deep:["Trade is attractive for laundering because it involves large values, complex documents and many parties across borders. By misstating price, quantity or quality, criminals can move value without moving money in an obvious way.",
+"Banks see trade through payments and, for trade finance, documents. For open-account trade, which is most international trade, the bank may see only the wire, so payment details and the customer's business profile are the main tools.",
+"Ask simple commercial questions: does this company buy or sell these goods, at this price, from this place, through these parties?"],
+look:{t:"Trade red flags",i:["Goods inconsistent with the customer's business.","Prices far above or below market.","Payments to third parties not named in the trade.","Shipping routes or transhipment points that make no sense.","Repeated round-amount payments described as invoices."]},
+pit:["Assuming you cannot assess trade without seeing the goods.","Ignoring payment descriptions that conflict with the business."],
+terms:["TBML"],
+take:["TBML misrepresents trade to move value.","Payments and profiles reveal mismatches.","Ask whether the trade makes commercial sense."]},
+
+m6e:{deep:["Fraud is now the largest driver of SAR filings at many banks. Alerts may involve the customer as a victim, as a mule, or as the fraudster, and the right response differs for each.",
+"Elder financial exploitation is often committed by someone the victim trusts: a relative, caregiver or a romance-scam contact. Changes in behaviour, new people directing transactions and urgent large withdrawals are typical signs.",
+"Business email compromise exploits trust in email. Fraudsters impersonate a supplier or executive and send new payment instructions. Funds usually go to a newly opened account and are moved on quickly."],
+look:{t:"Fraud red flags",i:["Older customer making uncharacteristic large withdrawals or wires, often accompanied or coached.","New payees added shortly before large transfers.","Urgent requests to change beneficiary bank details.","Deposited checks returned as altered or counterfeit after funds are withdrawn.","Customer unable to explain the purpose of a payment or repeating a script."]},
+pit:["Treating victims as subjects in the narrative.","Forgetting advisory key terms when filing SARs."],
+terms:["BEC","SAR"],
+take:["Identify whether the customer is victim, mule or perpetrator.","Elder exploitation often involves someone trusted.","Use FinCEN advisory key terms when filing."]},
+
+m6f:{deep:["Virtual assets move quickly and across borders, which makes them useful for both legitimate users and criminals. Banks rarely see the blockchain itself; they see their customers buying, selling or receiving funds from crypto businesses.",
+"Scams drive much of the crypto activity seen in bank alerts. Victims are told to buy crypto and send it to 'investment platforms' or to pay 'fees' to release fake profits. Crypto kiosks are often used because they convert cash quickly.",
+"Customer due diligence still applies. Ask whether the activity fits the customer's profile, who is directing it and where the funds are going."],
+look:{t:"Virtual asset red flags",i:["Large or rapid purchases inconsistent with the customer's income.","Cash deposited and immediately used at crypto kiosks.","Customer describing guaranteed returns or an online contact advising them.","Transfers to exchanges in high-risk jurisdictions.","Funds from exchanges followed by immediate cash withdrawal."]},
+pit:["Assuming all crypto activity is suspicious.","Missing that the customer is being scammed."],
+terms:["Money mule"],
+take:["Banks see crypto at the fiat edges.","Many crypto alerts involve scam victims.","Profile, direction and control matter."]},
+
+m7a:{deep:["Good triage saves time without cutting corners. In a few minutes, an analyst should know why the alert fired, whether the activity was already reviewed, and whether there is a documented explanation.",
+"Prior history is a powerful shortcut. A customer with three previous closures for the same documented reason may be closed quickly if nothing has changed, while a customer with a prior SAR deserves careful attention.",
+"Scoping prevents both under- and over-investigation. Decide which accounts, which related parties and how far back to look based on the risk, not habit."],
+look:{t:"Triage checklist",i:["Scenario, parameters and triggering transactions understood.","Review period confirmed.","Prior alerts, cases and SARs checked.","KYC profile and risk rating reviewed.","Obvious documented explanation identified or ruled out.","Scope set for full investigation if needed."]},
+pit:["Starting with the largest amount instead of the scenario logic.","Closing because 'it was closed last time' when the activity has changed."],
+terms:["Alert","Scenario","Case"],
+take:["Understand the alert before the amounts.","History is a shortcut, not a substitute.","Set a deliberate scope."]},
+
+m7b:{deep:["Analysis turns raw transactions into findings. Start with the big picture (total in, total out, monthly trend) and then zoom into patterns: who pays, who receives, how quickly, through which channel and from where.",
+"Comparisons make findings persuasive: against the KYC profile, against the customer's own history and against similar customers. A ratio or percentage is clearer than an adjective.",
+"Follow the money as far as your records allow. Incoming wires carry originator information; outgoing wires show beneficiaries; check images show payees and endorsements. Each step may reveal related parties or another account at your bank."],
+look:{t:"Analysis techniques",i:["Monthly totals in and out to spot trends.","Counterparty summary: top senders and receivers by value and count.","Time between credits and debits to measure retention.","Channel mix compared with the profile.","Geography of counterparties and branches.","Links to other customers through shared counterparties, addresses or devices."]},
+scen:{s:"A consultant's account normally receives two or three client payments a month totalling about $15,000. This month it received $68,000 from nine new payers and sent $61,000 to two overseas beneficiaries.",st:["Quantify: inflows were about 4.5 times normal from previously unseen payers.","Retention: about 90% left the account, much of it within days.","Counterparties: check whether payers or beneficiaries are known clients or related parties.","Next step: request invoices or contracts through a neutral RFI, or escalate if the pattern remains unexplained."]},
+pit:["Describing activity with vague adjectives.","Reviewing only the triggering transactions."],
+terms:["Pass-through","Case"],
+take:["Big picture first, then patterns.","Quantify every comparison.","Follow the money both ways."]},
+
+m7c:{deep:["Evidence has weight. Bank records are strong; a customer's unsupported email is weak; an anonymous online post is weaker still. A finding is only as strong as the evidence behind it.",
+"Gaps are normal. The question is whether a gap is material: would filling it change the conclusion? If not, note it and move on. If so, try to fill it or let the gap itself inform the disposition.",
+"Outreach must be handled carefully. Requests should look routine, ask for specific documents and avoid any suggestion that a SAR is being considered. Front-line staff making contact should be briefed on what to say."],
+look:{t:"Evidence register prompts",i:["What is established by bank records?","What has the customer said, and is it supported?","What external sources were checked, and what did they show?","What is still missing, and does it matter to the conclusion?","Are there contradictions between sources?"]},
+pit:["Treating a customer explanation as proof.","Wording an RFI in a way that hints at suspicion."],
+terms:["RFI","OSINT"],
+take:["Weigh evidence by reliability.","Decide whether each gap is material.","Keep outreach neutral and routine."]},
+
+m7d:{deep:["The disposition must follow from the evidence. If the activity is explained and documented, close it with that reason. If questions remain that could be answered, investigate further. If the activity remains unexplained and meets the reporting standard, escalate.",
+"A SAR narrative is read by investigators who may never contact the bank. It should stand on its own: who the subjects are, what happened, when and where, why it is suspicious, and how the activity was carried out. Include amounts, dates, account numbers and counterparties.",
+"Closures matter too. A short, specific rationale that cites the evidence is far more useful than 'activity reviewed, no concerns', both for later reviewers and for tuning."],
+look:{t:"Narrative checklist",i:["Opening summary: who, what and the total amount and period.","Subject and account details relevant to the activity.","Chronological description of the suspicious activity.","Why it is suspicious, compared with the profile and history.","How it was carried out: channels, locations, counterparties.","Any customer explanation and whether it was supported."]},
+pit:["Speculating about guilt or the underlying crime.","Using internal codes or jargon investigators will not understand.","Writing closures that give no reason."],
+terms:["SAR","Case","Tipping off"],
+take:["Disposition follows evidence.","Narratives must stand alone.","Closures need specific reasons too."]},
+
+m8a:{deep:["Most case analysis comes down to a few spreadsheet skills applied consistently. A clean extract, a PivotTable and a handful of conditional formulas answer the questions an investigation asks.",
+"Clean data first. Check that amounts are numbers, dates are real dates, and debits and credits are clearly separated. Remove duplicate rows only after confirming they are genuine duplicates.",
+"Keep an audit trail: save the original extract unchanged, note any transformations and keep your working file with the case."],
+look:{t:"Useful techniques",i:["PivotTable by counterparty, month or channel.","SUMIFS and COUNTIFS for totals within amount bands or date ranges.","XLOOKUP to bring KYC or risk fields into a transaction list.","Conditional formatting to highlight amounts just below thresholds.","Sorting by date to measure the time between credits and debits."]},
+pit:["Working directly on the original extract.","Trusting totals before checking for text-formatted numbers."],
+terms:["Aggregation"],
+take:["Clean data before analysis.","PivotTables and COUNTIFS answer most questions.","Keep the original and document changes."]},
+
+m8b:{deep:["Open-source research helps confirm who a customer or counterparty is, what they do and whether there is relevant adverse information. It works best when it is focused on specific questions from the case.",
+"Official sources carry the most weight: company registries, court records, regulator and law enforcement releases, and sanctions lists. News articles add context but need checking for date, accuracy and relevance.",
+"Research must stay passive. Analysts do not contact subjects, create fake profiles or access restricted information. Everything found should be recorded so another analyst could repeat the search."],
+look:{t:"Research workflow",i:["Define the question: identity, business activity, ownership or adverse information.","Search official sources first, then reputable media.","Use exact names and risk keywords; vary spellings.","Record the source, date and finding, including nothing found.","Assess relevance: is this the same person or entity?"]},
+pit:["Treating the first search result as fact.","Not recording null results."],
+terms:["OSINT","PEP"],
+take:["Research answers specific questions.","Official sources first.","Record everything, including nothing found."]}
+};
+const MODSUM={
+1:"Laundering gives illicit money a believable history through placement, layering and integration. It depends on a predicate crime, with fraud the largest source in the US. Terrorist financing hides destination rather than origin. Banks are the gatekeepers because nearly every scheme needs the financial system.",
+2:"The BSA creates the records and reports law enforcement needs; the 1986 Act criminalised laundering. Programs rest on five pillars. Know the key numbers: $10,000 CTRs, $5,000 and $25,000 SAR thresholds, 30-day SAR deadlines, $3,000 recordkeeping and five-year retention. 314(a) and 314(b) support information sharing.",
+3:"Identify and verify every customer, look through to beneficial owners, and build a specific profile of expected activity. Risk ratings drive the depth of monitoring and change with circumstances. EDD deepens understanding for higher-risk relationships.",
+4:"OFAC sanctions are strict liability, and the 50 Percent Rule extends blocking through ownership. Resolve screening hits on identifiers and document the reasoning. PEP status and geography raise risk but never decide a case alone.",
+5:"Monitoring depends on good data, well-reasoned scenarios and sensible segmentation. Tuning trades precision against detection and must be tested below the line and governed like any model. Alerts flow through triage, investigation, disposition and quality assurance.",
+6:"Cash typologies hide origin; movement typologies break the trail; mules move fraud proceeds; trade-based schemes misrepresent value. Fraud and virtual asset patterns often involve victims as well as offenders.",
+7:"Understand the alert, compare activity with the profile, quantify what changed and follow the money. Weigh evidence, decide whether gaps matter and keep outreach neutral. Let the disposition follow the evidence and write narratives that stand alone.",
+8:"Clean the data, use PivotTables and conditional formulas, and keep an audit trail. Research from official sources first, record every search and stay passive."
+};
+
+</script>
+<script>
 {
 const $=(s,r=document)=>r.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -749,19 +1035,33 @@ function home(){const done=LESSONS.filter(l=>P.done[l.id]).length;const nx=LESSO
  document.querySelectorAll(".day").forEach(b=>b.onclick=()=>{LSEL=LESSONS.find(l=>l.mod==b.dataset.day).id;location.hash="learn"});}
 
 /* ---------- LEARN ---------- */
+const GL={};GLOSS.forEach(g=>GL[g[0]]=g[1]);
+function lessonBody(l,ml){const x=EXT[l.id]||{};const secs=[["s-over","Overview",x.deep],["s-key","Key points",1],["s-look","What to look for",x.look],["s-scen","Worked scenario",x.scen],["s-pit","Common mistakes",x.pit],["s-take","Remember",x.take],["s-quiz","Quick check",1]].filter(s=>s[2]);
+ const last=ml[ml.length-1]===l;
+ return `<nav class="jump scroll" aria-label="On this page">${secs.map(s=>`<a href="#${s[0]}" data-jump="${s[0]}">${s[1]}</a>`).join("")}</nav>
+ ${x.deep?`<section class="sec" id="s-over"><h3>Overview</h3>${x.deep.map(p=>`<p class="prose">${esc(p)}</p>`).join("")}</section>`:""}
+ <section class="sec" id="s-key"><h3>Key points</h3><ol class="points">${l.p.map(p=>`<li><span>${esc(p)}</span></li>`).join("")}</ol></section>
+ ${l.ex?`<div class="note"><b>Worked example</b>${esc(l.ex)}</div>`:""}
+ ${x.look?`<section class="sec" id="s-look"><h3>What to look for</h3><div class="panel"><div class="lbl" style="margin-bottom:8px">${esc(x.look.t)}</div><ul class="ticks2">${x.look.i.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div></section>`:""}
+ ${x.scen?`<section class="sec" id="s-scen"><h3>Worked scenario</h3><div class="panel"><p class="prose" style="margin-bottom:14px"><b style="font-weight:600">Situation.</b> ${esc(x.scen.s)}</p><ol class="steps">${x.scen.st.map(s=>`<li>${esc(s)}</li>`).join("")}</ol></div></section>`:""}
+ ${l.off?`<div class="note off" style="margin-top:24px"><b>Official update</b>${esc(l.off)}</div>`:""}
+ ${x.pit?`<section class="sec" id="s-pit"><h3>Common mistakes</h3><ul class="cross">${x.pit.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></section>`:""}
+ ${x.terms&&x.terms.length?`<section class="sec"><h3>Key terms</h3><dl class="gl">${x.terms.filter(t=>GL[t]).map(t=>`<dt>${esc(t)}</dt><dd>${esc(GL[t])}</dd>`).join("")}</dl></section>`:""}
+ ${x.take?`<section class="sec" id="s-take"><div class="take"><h3>Remember</h3><ul>${x.take.map(i=>`<li>${esc(i)}</li>`).join("")}</ul></div></section>`:""}
+ ${last&&MODSUM[l.mod]?`<section class="sec"><div class="note"><b>Module ${l.mod} recap: ${esc(MODS[l.mod-1].t)}</b>${esc(MODSUM[l.mod])}</div></section>`:""}`}
+
 let LSEL=(LESSONS.find(l=>!P.done[l.id])||LESSONS[0]).id;
 function learn(){const l=LESSONS.find(x=>x.id===LSEL);const qs=QB.filter(q=>q.l===l.id);const ix=LESSONS.indexOf(l);const ml=LESSONS.filter(x=>x.mod===l.mod);
  $("#v-learn").innerHTML=`<div class="head"><div><h1>Learn</h1></div></div>
  <div class="learn"><nav class="toc" aria-label="Lessons">${MODS.map(d=>`<h4>Module ${d.n}: ${esc(d.t)}</h4>`+LESSONS.filter(x=>x.mod===d.n).map((x,j)=>`<button data-l="${x.id}" aria-current="${x.id===l.id}"><span class="id">${d.n}.${j+1}</span><span>${esc(x.t)}</span>${P.done[x.id]?'<span class="tk">✓</span>':""}</button>`).join("")).join("")}</nav>
  <article class="lesson"><div class="row"><span class="chip">Module ${l.mod}: ${esc(MODS[l.mod-1].t)}</span><span class="chip">Lesson ${ml.indexOf(l)+1} of ${ml.length}</span>${P.done[l.id]?'<span class="chip ok">Complete</span>':""}</div>
- <h2>${esc(l.t)}</h2>
- <ol class="points">${l.p.map(x=>`<li><span>${esc(x)}</span></li>`).join("")}</ol>
- <div class="stack" style="margin-top:20px">${l.ex?`<div class="note"><b>Worked example</b>${esc(l.ex)}</div>`:""}${l.off?`<div class="note off"><b>Official update</b>${esc(l.off)}</div>`:""}</div>
- <h3 style="margin:32px 0 12px">Quick check</h3><div class="stack" id="qc">${qs.map(q=>mcHTML(q,"s"+q.i,P.sess[q.i])).join("")}</div>
+ <h2>${esc(l.t)}</h2>${lessonBody(l,ml)}
+ <section class="sec" id="s-quiz"><h3>Quick check</h3><div class="stack" id="qc">${qs.map(q=>mcHTML(q,"s"+q.i,P.sess[q.i])).join("")}</div></section>
  <div class="row" style="margin-top:24px;justify-content:space-between"><button class="btn ghost" id="prev" ${ix?"":"disabled"}>Previous</button>
  <div class="row"><button class="btn ${P.done[l.id]?"ghost":""}" id="mark">${P.done[l.id]?"Mark as not complete":"Mark lesson complete"}</button><button class="btn ghost" id="next" ${ix<LESSONS.length-1?"":"disabled"}>Next</button></div></div></article></div>`;
  const v=$("#v-learn");
  v.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{LSEL=b.dataset.l;learn();$("#main").scrollTop=0});
+ v.querySelectorAll("[data-jump]").forEach(j=>j.onclick=e=>{e.preventDefault();const t=document.getElementById(j.dataset.jump);if(t)t.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})});
  $("#qc").onclick=e=>{const o=e.target.closest(".opt");if(!o||o.disabled)return;const m=o.closest("[data-mc]");const qi=+m.dataset.mc.slice(1);P.sess[qi]=+o.dataset.i;if(+o.dataset.i!==QB[qi].a)P.missed[qi]=1;save();m.outerHTML=mcHTML(QB[qi],"s"+qi,P.sess[qi])};
  $("#mark").onclick=()=>{P.done[l.id]=!P.done[l.id];save();learn()};
  $("#prev").onclick=()=>{LSEL=LESSONS[ix-1].id;learn();$("#main").scrollTop=0};
