@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AML Training Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Serif:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light dark;
+--bg:light-dark(#f4f5f7,#0e1216);--panel:light-dark(#ffffff,#151a20);--ink:light-dark(#151a20,#e5e8eb);--mute:light-dark(#5b6571,#94a0ac);
+--line:light-dark(#d8dce1,#28313b);--soft:light-dark(#eef0f3,#1b222a);--pri:light-dark(#1f3a56,#8fb3d6);--prib:light-dark(#1f3a56,#2d5279);
+--acc:light-dark(#8a2b2b,#e0938a);--ok:light-dark(#2d5b44,#86c4a2);--okb:light-dark(#e6efe9,#16261d);--bad:light-dark(#8a2b2b,#e0938a);--badb:light-dark(#f6e8e6,#2a1716);
+--warn:light-dark(#7c5a12,#d9b46a);--warnb:light-dark(#f5eedd,#2a2213);--rail:#12171c;--railink:#c9d1d9}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 "IBM Plex Sans",system-ui,sans-serif;overflow:hidden}
+h1,h2,h3{font-family:"IBM Plex Serif",Georgia,serif;font-weight:600;line-height:1.1;letter-spacing:-.01em;margin:0;text-wrap:balance}
+h1{font-size:clamp(28px,3.4vw,40px)}h2{font-size:24px}h3{font-size:18px}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+.app{display:grid;grid-template-columns:232px minmax(0,1fr);height:100%}
+.side{background:var(--rail);color:var(--railink);display:flex;flex-direction:column;padding:22px 14px;gap:4px;border-right:1px solid #000}
+.brand{display:flex;gap:10px;align-items:center;padding:0 8px 18px;border-bottom:1px solid #2a323b;margin-bottom:12px}
+.brand b{font-family:"IBM Plex Serif",serif;font-size:18px;color:#fff;font-weight:600;line-height:1.15}
+.brand small{display:block;color:#8592a0;font-size:13px}
+.nav{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 10px;border:0;background:none;border-radius:6px;text-align:left;color:var(--railink);font-size:15px}
+.nav svg,.tab svg{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.6}
+.nav:hover{background:#1c232b}.nav[aria-current=page]{background:#223548;color:#fff}
+.sidefoot{margin-top:auto;border-top:1px solid #2a323b;padding:14px 8px 0;font-size:13px;color:#8592a0}
+.meter{height:4px;background:#2a323b;border-radius:2px;margin:6px 0 10px;overflow:hidden}.meter i{display:block;height:100%;background:#8fb3d6}
+main{overflow-y:auto;height:100%;scroll-behavior:smooth}
+.view{display:none;padding:clamp(20px,3.5vw,44px) max(4vw,16px) 64px;max-width:1240px;margin:0 auto}
+.view.on{display:block}
+.head{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;padding-bottom:18px;border-bottom:2px solid var(--ink);margin-bottom:24px}
+.head p{color:var(--mute);margin-top:8px;max-width:62ch}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:20px}
+.panel>h3{margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.stack>*+*{margin-top:20px}
+.lbl{font-size:13px;color:var(--mute)}
+.big{font-family:"IBM Plex Serif",serif;font-size:clamp(26px,3vw,34px);font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:6px;border:1px solid var(--prib);background:var(--prib);color:#fff;font-weight:500}
+.btn:hover{filter:brightness(1.12)}
+.btn.ghost{background:transparent;color:var(--pri);border-color:var(--line)}
+.btn.ghost:hover{border-color:var(--pri)}
+.btn.sm{min-height:36px;padding:0 12px;font-size:14px}
+.btn:disabled{opacity:.45;cursor:default;filter:none}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;white-space:nowrap;color:var(--mute)}
+.chip.alert{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 45%,transparent)}
+.chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+.chip.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.nw{white-space:nowrap}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:500;color:var(--mute);text-align:left;border-bottom:1px solid var(--ink);padding:8px 8px}
+td{border-bottom:1px solid var(--line);padding:8px 8px;vertical-align:top}
+.scroll{overflow-x:auto}
+.tall{max-height:380px;overflow:auto}
+.tall thead th{position:sticky;top:0;background:var(--panel)}
+tr.hit td{background:color-mix(in srgb,var(--acc) 8%,transparent)}
+/* lifecycle picture */
+.life{position:relative;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));margin:6px 0 4px}
+.life:before{content:"";position:absolute;left:8%;right:8%;top:23px;height:2px;background:var(--ink)}
+.stn{position:relative;text-align:center;padding:0 6px}
+.dot{width:48px;height:48px;margin:0 auto 12px;border-radius:50%;border:2px solid var(--ink);background:var(--panel);display:grid;place-items:center}
+.dot svg{width:22px;height:22px;stroke:var(--pri);fill:none;stroke-width:1.7}
+.stn.hot .dot{border-color:var(--acc)}.stn.hot .dot svg{stroke:var(--acc)}
+.stn b{display:block;font-family:"IBM Plex Serif",serif;font-size:24px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stn span{display:block;font-size:13px;color:var(--mute);margin-top:4px}
+/* day track */
+.days{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.day{padding:16px;border-left:1px solid var(--line);border-bottom:1px solid var(--line)!important;display:flex;flex-direction:column;gap:8px;text-align:left;background:none;border-top:0;border-right:0;border-bottom:0}
+.day:nth-child(4n+1){border-left:0}.day:nth-last-child(-n+4){border-bottom:0!important}
+.day:hover{background:var(--soft)}
+.day .lbl{display:flex;justify-content:space-between}
+.ticks{display:flex;gap:4px;margin-top:auto}.ticks i{flex:1;height:4px;border-radius:2px;background:var(--line)}.ticks i.y{background:var(--pri)}
+/* learn */
+.learn{display:grid;grid-template-columns:300px minmax(0,1fr);gap:28px;align-items:start}
+.toc{position:sticky;top:0;display:flex;flex-direction:column;gap:2px}
+.toc h4{margin:14px 0 4px;font-size:13px;font-weight:500;color:var(--mute)}
+.toc button{display:flex;gap:10px;align-items:flex-start;text-align:left;border:0;background:none;padding:9px 10px;border-radius:6px;min-height:44px;font-size:14px;line-height:1.35}
+.toc button:hover{background:var(--soft)}
+.toc button[aria-current=true]{background:var(--panel);box-shadow:inset 3px 0 0 var(--pri)}
+.toc .id{font-variant-numeric:tabular-nums;color:var(--mute);width:2.2em;flex:none}
+.toc .tk{margin-left:auto;flex:none;color:var(--ok)}
+.lesson h2{font-size:clamp(24px,2.6vw,32px);margin:6px 0 10px}
+.points{list-style:none;margin:20px 0 0;padding:0;counter-reset:p}
+.points li{counter-increment:p;display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px;padding:12px 0;border-top:1px solid var(--line);max-width:72ch}
+.points li:before{content:counter(p);font-family:"IBM Plex Serif",serif;color:var(--pri);font-weight:600}
+.note{border-left:3px solid var(--pri);background:var(--panel);padding:14px 16px;border-radius:0 6px 6px 0;max-width:76ch}
+.note.off{border-left-color:var(--acc)}
+.note b{display:block;font-size:13px;color:var(--mute);font-weight:500;margin-bottom:4px}
+/* multiple choice */
+.mc{border:1px solid var(--line);border-radius:8px;padding:18px;background:var(--panel)}
+.mc .q{font-weight:500;margin-bottom:12px;max-width:72ch}
+.opts{display:grid;gap:8px}
+.opt{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start;text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:10px 12px;min-height:44px;line-height:1.4}
+.opt:hover:not(:disabled){border-color:var(--pri)}
+.opt .k{width:24px;height:24px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;font-size:12px;color:var(--mute)}
+.opt.right{border-color:var(--ok);background:var(--okb)}.opt.right .k{border-color:var(--ok);color:var(--ok)}
+.opt.wrong{border-color:var(--bad);background:var(--badb)}.opt.wrong .k{border-color:var(--bad);color:var(--bad)}
+.opt.part{border-color:var(--warn);background:var(--warnb)}
+.opt:disabled{cursor:default}
+.exp{margin-top:12px;font-size:15px;padding:10px 12px;border-radius:6px;background:var(--soft)}
+.exp b{color:var(--ok)}.exp b.no{color:var(--bad)}
+/* lab */
+.lab{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.rules{display:grid;gap:12px}
+.rule{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:14px 16px}
+.rule.offr{opacity:.55}
+.rule header{display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.rule p{font-size:14px;color:var(--mute);margin-top:2px}
+.sw{position:relative;width:44px;height:26px;flex:none;appearance:none;border-radius:13px;background:var(--line);border:0;transition:background .15s}
+.sw:before{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
+.sw:checked{background:var(--prib)}.sw:checked:before{left:21px}
+.prm{display:grid;grid-template-columns:minmax(0,1fr) 88px;gap:4px 12px;align-items:center;margin-top:10px;font-size:14px}
+.prm output{text-align:right;font-variant-numeric:tabular-nums;font-weight:500}
+input[type=range]{grid-column:1/-1;width:100%;appearance:none;height:28px;background:none}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--line)}
+input[type=range]::-moz-range-track{height:2px;background:var(--line)}
+input[type=range]::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;background:var(--panel);border:2px solid var(--pri);margin-top:-8px}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--panel);border:2px solid var(--pri)}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.kpis>div{background:var(--panel);padding:14px 16px}
+.bars{display:grid;gap:12px;margin-top:6px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:14px}
+.track{grid-column:1/-1;display:flex;height:10px;background:var(--soft);border-radius:2px;overflow:hidden}
+.track i{display:block;height:100%}.track .tp{background:var(--acc)}.track .fp{background:color-mix(in srgb,var(--mute) 55%,transparent)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--mute);margin-top:12px}.legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.sticky{position:sticky;top:0}
+/* cases */
+.cases{display:grid;grid-template-columns:320px minmax(0,1fr);gap:24px;align-items:start}
+.queue{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:8px;background:var(--panel);overflow:hidden}
+.qi{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;text-align:left;border:0;border-bottom:1px solid var(--line);background:none;padding:12px 14px;min-height:44px}
+.qi:last-child{border-bottom:0}.qi:hover{background:var(--soft)}
+.qi[aria-current=true]{box-shadow:inset 3px 0 0 var(--pri);background:var(--soft)}
+.qi b{font-weight:500}.qi small{grid-column:1/-1;color:var(--mute);font-size:13px}
+.kv{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 16px;font-size:14px}
+.kv dt{color:var(--mute)}.kv dd{margin:0}
+.fig{position:relative;height:220px}.fig>svg{position:absolute;inset:0;width:100%;height:100%}
+svg text{font:12px "IBM Plex Sans",sans-serif;fill:var(--mute)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{border:0;background:var(--panel);padding:0 12px;min-height:36px;font-size:14px;border-left:1px solid var(--line)}
+.seg button:first-child{border-left:0}.seg button[aria-pressed=true]{background:var(--prib);color:#fff}
+.field{display:grid;gap:4px;font-size:14px}
+.field input,.field textarea{border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:var(--panel);font-size:16px}
+.field textarea{min-height:64px;resize:vertical}
+.draft{white-space:pre-wrap;font-size:15px;background:var(--soft);border-radius:6px;padding:14px;max-width:80ch}
+.stamp{display:inline-block;border:2px solid currentColor;padding:2px 10px;font-weight:600;letter-spacing:.02em;border-radius:4px;transform:rotate(-2deg)}
+.score{font-family:"IBM Plex Serif",serif;font-size:56px;font-weight:600;line-height:1}
+.empty{color:var(--mute);padding:28px;text-align:center;border:1px dashed var(--line);border-radius:8px}
+.gl{display:grid;grid-template-columns:200px minmax(0,1fr);gap:0 20px}
+.gl dt{font-weight:500;padding:10px 0;border-top:1px solid var(--line)}.gl dd{margin:0;padding:10px 0;border-top:1px solid var(--line);color:var(--mute)}
+.search{width:100%;max-width:420px;border:1px solid var(--line);border-radius:6px;padding:10px 12px;background:var(--panel);font-size:16px}
+a{color:var(--pri)}
+.tabbar{display:none}
+.sample{font-size:13px;color:var(--mute)}
+@media(max-width:1100px){.lab,.cases{grid-template-columns:minmax(0,1fr)}.sticky{position:static}.learn{grid-template-columns:240px minmax(0,1fr)}}
+@media(max-width:900px){
+ .app{grid-template-columns:minmax(0,1fr)}
+ .side{display:none}
+ main{padding-bottom:72px}
+ .tabbar{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));position:fixed;left:0;right:0;bottom:0;height:64px;background:var(--rail);border-top:1px solid #000;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+ .tab{border:0;background:none;color:#8a96a3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px}
+ .tab[aria-current=page]{color:#fff}
+ .learn{grid-template-columns:minmax(0,1fr)}.toc{position:static}
+ .grid3{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:1100px){.days{grid-template-columns:repeat(2,minmax(0,1fr))}.day:nth-child(n){border-left:1px solid var(--line);border-bottom:1px solid var(--line)!important}.day:nth-child(2n+1){border-left:0}.day:nth-last-child(-n+2){border-bottom:0!important}}
+@media(max-width:700px){
+ .grid2{grid-template-columns:minmax(0,1fr)}
+ .days{grid-template-columns:minmax(0,1fr)}.day:nth-child(n){border-left:0;border-bottom:1px solid var(--line)!important}.day:last-child{border-bottom:0!important}
+ .life{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:22px}.life:before{display:none}
+ .gl{grid-template-columns:minmax(0,1fr)}.gl dd{border-top:0;padding-top:0}
+ table{font-size:13px}th,td{padding:6px 4px}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="side" aria-label="Main navigation">
+ <div class="brand"><svg width="30" height="30" viewBox="0 0 30 30" fill="none" stroke="#8fb3d6" stroke-width="1.6"><rect x="3" y="5" width="24" height="20" rx="2"/><path d="M3 11h24M9 17h6M9 20h10"/><circle cx="21.5" cy="18.5" r="2.5" stroke="#e0938a"/></svg><div><b>AML Training Lab</b><small>Transaction monitoring</small></div></div>
+ <div id="navs"></div>
+</aside>
+<main id="main">
+ <section class="view" id="v-home"></section>
+ <section class="view" id="v-learn"></section>
+ <section class="view" id="v-lab"></section>
+ <section class="view" id="v-cases"></section>
+ <section class="view" id="v-tests"></section>
+ <section class="view" id="v-ref"></section>
+</main>
+<nav class="tabbar" id="tabs" aria-label="Main navigation"></nav>
+</div>
+<script>
+/* ===== Curriculum: independent topic modules, built on FFIEC, FinCEN, OFAC and FATF material ===== */
+const MODS=[
+ {n:1,t:"How money laundering works",d:"The three stages, predicate crime, terrorist financing and why banks are gatekeepers"},
+ {n:2,t:"The US legal framework",d:"The BSA, who enforces it, required reports and records, and what changed recently"},
+ {n:3,t:"Knowing your customer",d:"Identification, beneficial ownership, risk rating and enhanced due diligence"},
+ {n:4,t:"Sanctions and screening",d:"OFAC, the 50 Percent Rule, PEPs, adverse media and country risk"},
+ {n:5,t:"Inside a monitoring system",d:"Data, scenarios, thresholds, tuning and how alerts reach an analyst"},
+ {n:6,t:"Typologies and red flags",d:"Cash, movement, third-party, trade, fraud and virtual asset patterns"},
+ {n:7,t:"Investigating an alert",d:"Triage, analysis, evidence, customer outreach and the SAR decision"},
+ {n:8,t:"Analyst toolkit",d:"Spreadsheet techniques and open-source research for case work"}
+];
+const LESSONS=[
+/* ---- Module 1 ---- */
+{id:"m1a",mod:1,t:"Three stages, one goal",
+ p:["Laundering exists to give criminal money a believable history, so it can be spent or invested without drawing attention to where it came from.",
+ "Placement is the riskiest moment for a criminal: physical cash, or funds from an obvious crime, first touch a regulated institution. Deposits, money orders and cash-heavy front businesses are common entry points.",
+ "Layering puts distance between the money and its source: transfers between accounts, institutions, countries and asset types, often fast and with little business logic.",
+ "Integration returns the money looking legitimate: property purchases, loans repaid from ‘business profits’, invoices for services never delivered.",
+ "Real schemes rarely run in a neat line. A single account can show placement and layering in the same week, so analysts look for behaviour rather than labels."],
+ ex:"A drug courier deposits small sums of cash into several accounts (placement). The funds are wired to a shell company abroad and back as a ‘consulting fee’ (layering). The fee pays the mortgage on a rental property (integration)."},
+{id:"m1b",mod:1,t:"Where dirty money comes from",
+ p:["Laundering needs an underlying crime, called a predicate offence: fraud, drug trafficking, corruption, tax crimes, human trafficking, cybercrime and many others.",
+ "In the US, fraud is the largest source of illicit proceeds, which is why scams and account takeovers now drive so much alert volume.",
+ "Analysts are not expected to prove which crime produced the money. The task is to recognise when activity has no reasonable explanation and report it.",
+ "Knowing the predicate still helps: it shapes which red flags to look for and the vocabulary used in a SAR."],
+ off:"FinCEN’s first national AML/CFT priorities (30 June 2021) are corruption, cybercrime, terrorist financing, fraud, transnational criminal organisations, drug trafficking, human trafficking and smuggling, and proliferation financing. Programs are expected to reflect them in their risk assessments."},
+{id:"m1c",mod:1,t:"Terrorist financing is laundering in reverse",
+ p:["Money laundering hides where money came from. Terrorist financing hides where money is going.",
+ "The source can be completely clean: wages, savings, donations or a small business. What matters is the destination and purpose.",
+ "Amounts are often small and unremarkable on their own. The pattern only shows when you aggregate transfers, beneficiaries and timing.",
+ "Watch for funds pooled from many people and sent onward to a conflict area, charities whose spending does not match their stated mission, and sudden changes in travel or transfer behaviour.",
+ "Nationality, religion, ethnicity or charitable giving are never indicators on their own. Assessments must rest on behaviour."]},
+{id:"m1d",mod:1,t:"Why banks are the gatekeepers",
+ p:["Almost every laundering method eventually needs a bank account, a payment rail or a card. That makes financial institutions the most practical place to spot it.",
+ "Banks manage this through the three lines of defence: the business that owns customer risk, compliance and risk functions that oversee it, and internal audit that tests both.",
+ "A monitoring analyst sits in the second line (or in a first-line operations team supporting it) and turns automated signals into human judgement.",
+ "Failures are costly. Regulators can impose penalties, growth restrictions or monitorships, and individuals can face personal liability for wilful violations."]},
+/* ---- Module 2 ---- */
+{id:"m2a",mod:2,t:"The Bank Secrecy Act at a glance",
+ p:["The BSA (1970) requires financial institutions to keep records and file reports that are useful to law enforcement. It sits in 31 U.S.C. Chapter 53, with FinCEN’s rules in 31 CFR Chapter X.",
+ "Later laws built on it: the Money Laundering Control Act 1986 made laundering a federal crime; the USA PATRIOT Act 2001 added customer identification and stronger due diligence; the AML Act of 2020 modernised the regime and created national priorities.",
+ "Every bank must run an AML/CFT program with internal controls, independent testing, a designated BSA officer, training, and risk-based customer due diligence.",
+ "Supervision is shared: FinCEN writes the rules; the OCC, Federal Reserve, FDIC and NCUA examine banks and credit unions; the SEC and FINRA cover securities firms; the DOJ prosecutes."],
+ off:"On 7 April 2026 FinCEN proposed a rule to reform AML/CFT programs around an ‘effective’ standard that lets institutions put resources on higher risks. Comments closed 9 June 2026; a final rule would take effect 12 months after issuance. Check FinCEN for its current status."},
+{id:"m2b",mod:2,t:"Reports and records you will see",
+ p:["Currency Transaction Report (CTR): cash in or out over $10,000 in a business day, aggregated across transactions by or for the same person. Filed within 15 days. It is routine, not an accusation.",
+ "Suspicious Activity Report (SAR): filed when a bank knows, suspects or has reason to suspect a transaction involves illicit funds, evades the BSA or has no apparent lawful purpose, generally at $5,000 or more where a suspect is identified.",
+ "Recordkeeping: funds transfers of $3,000 or more carry originator and beneficiary details, and cash purchases of monetary instruments from $3,000 to $10,000 require identification and a log. Records are kept for five years.",
+ "Structuring, splitting cash to dodge a CTR, is a crime in itself under 31 U.S.C. § 5324, even if the money is clean.",
+ "SARs are confidential. Disclosing that one exists or is being considered (tipping off) is prohibited, and good-faith filers have safe harbor from civil liability."],
+ off:"FinCEN SAR FAQs (October 2025): an initial SAR is generally due 30 days after the facts are detected, extendable to 60 if no suspect is identified. Cash near $10,000 alone does not require a SAR, a post-SAR continuing activity review is not mandatory, and documenting a decision not to file is encouraged but not required."},
+{id:"m2c",mod:2,t:"Information sharing: 314(a) and 314(b)",
+ p:["Section 314(a) lets FinCEN send banks lists of subjects named by law enforcement. Banks search their records and report matches, quietly and quickly.",
+ "Section 314(b) lets registered institutions share information with each other about possible laundering or terrorist financing, with legal protection.",
+ "For an analyst, 314(b) can fill gaps: confirming whether a counterparty bank sees the same pattern on its side.",
+ "A 314(a) match is not proof of anything, but it should trigger a review of the customer’s activity under your procedures."]},
+/* ---- Module 3 ---- */
+{id:"m3a",mod:3,t:"Identifying the customer",
+ p:["Customer identification sets the foundation: the bank must form a reasonable belief that it knows who it is dealing with.",
+ "For individuals, the minimum is name, date of birth, a residential address and an identification number, verified by documents or independent data sources.",
+ "For businesses, verify the legal name, physical address and tax ID, then go further: who owns it and who controls it are separate questions from whether it exists.",
+ "Names are screened against government lists at onboarding, and discrepancies (a date of birth that does not match, an address that is a mail drop) must be resolved, not noted and forgotten."]},
+{id:"m3b",mod:3,t:"Beneficial ownership",
+ p:["A beneficial owner is a real person behind a legal entity: each individual owning 25% or more, plus one individual with significant management control.",
+ "Layered structures, nominee directors and offshore holding companies are not illegal, but they deserve a clear business rationale.",
+ "Ownership changes, especially shortly before large or unusual activity, are worth noting in a case.",
+ "If a public registry shows no owner, that is a gap to close, not evidence that nobody owns the company."],
+ off:"FinCEN’s exceptive relief order of 13 February 2026 lets banks identify and verify a legal entity’s beneficial owners at first account opening, when facts cast doubt on earlier information, and as their risk-based procedures require, rather than at every new account. Use is optional and the ownership requirement remains."},
+{id:"m3c",mod:3,t:"Risk rating and expected activity",
+ p:["Every customer gets a risk profile built from who they are, where they operate, which products they use and how they transact.",
+ "The profile should say what normal looks like: typical income or revenue, transaction types, counterparties and geographies. Monitoring compares actual activity against this.",
+ "A vague profile (‘general business’, ‘personal use’) makes every later alert harder to resolve. Good profiles are specific and current.",
+ "Ratings are reviewed periodically, and also when something changes: a new product, a move to a new country, adverse news, or repeated alerts."],
+ ex:"Two accounts each receive a $60,000 wire from overseas. For an import business with declared foreign suppliers, it fits. For a newly opened personal account belonging to a student, it calls for questions."},
+{id:"m3d",mod:3,t:"Enhanced due diligence",
+ p:["EDD is extra scrutiny for higher-risk relationships: politically exposed persons, cash-intensive businesses, money services businesses, private and correspondent banking, complex ownership and high-risk jurisdictions.",
+ "Typical measures include documented source of funds (where this money came from) and source of wealth (how the person built their overall wealth), senior management approval, site visits and more frequent reviews.",
+ "EDD is proportionate, not punitive. The aim is to understand the risk well enough to manage it, and most high-risk customers are legitimate.",
+ "An analyst who finds activity well outside the profile may recommend an EDD review even when a SAR is not warranted."]},
+/* ---- Module 4 ---- */
+{id:"m4a",mod:4,t:"OFAC sanctions",
+ p:["OFAC administers US economic sanctions. US persons must not deal with property or interests of designated parties, wherever the transaction happens.",
+ "The SDN List names blocked individuals, companies, vessels and aircraft. Other programmes impose narrower restrictions, such as limits on debt or equity dealings.",
+ "Blocking freezes the property and must be reported to OFAC within 10 business days. Some prohibited transactions are rejected instead of blocked.",
+ "Sanctions liability is strict: intent is not required. That is why screening runs in real time on payments and customer records.",
+ "The 50 Percent Rule: an entity owned 50% or more, directly or indirectly and in aggregate, by blocked persons is itself blocked, even if it is not on the list."],
+ ex:"Two blocked individuals each own 30% of a shipping company. Neither alone controls it, but together they own 60%, so the company is treated as blocked."},
+{id:"m4b",mod:4,t:"Resolving a screening hit",
+ p:["Most hits are false: common names, partial matches or outdated aliases. Each needs a documented resolution.",
+ "Compare identifiers: full name and spelling, date of birth, nationality, address, ID numbers, and for entities, registration details and owners.",
+ "Look at context: does the profession, location or business line fit the listed party? One strong mismatch (a different date of birth) usually resolves an individual hit.",
+ "If the hit cannot be ruled out, escalate under your procedure and do not release the payment while it is under review. Never ask the customer whether they are the sanctioned person."]},
+{id:"m4c",mod:4,t:"PEPs and adverse media",
+ p:["Politically exposed persons hold or held prominent public functions, such as senior officials, judges, military leaders and executives of state-owned companies, plus their family and close associates.",
+ "PEP status raises corruption risk; it does not make someone a criminal. Expect proportionate EDD, not automatic exit.",
+ "Adverse media must be weighed for source quality, date and status. An allegation, a charge, a conviction and an acquittal are very different facts.",
+ "Prefer court records, regulators’ announcements and established news outlets. Treat anonymous posts and blogs as leads to verify, never as evidence."],
+ off:"FinCEN’s Advisory on Kleptocracy and Foreign Public Corruption (April 2022) lists red flags for corrupt PEP activity and asks filers to use the key term CORRUPTION FIN-2022-A001 in SARs."},
+{id:"m4d",mod:4,t:"Country and geographic risk",
+ p:["Geography raises or lowers risk; it never decides a case alone. A payment to a high-risk country with clear trade documents can be routine.",
+ "Sources of country risk include the FATF lists, OFAC programmes, the institution’s own country risk ratings, and corruption and secrecy indicators.",
+ "The FATF publishes two lists: jurisdictions subject to a call for action (EDD and possibly countermeasures), and jurisdictions under increased monitoring (the ‘grey list’), which are working to fix deficiencies.",
+ "Watch for routing that makes no sense: funds passing through several countries with no link to the customer, or a sudden new corridor."],
+ off:"After the FATF plenary on 30 October 2026, the DPRK, Iran and Myanmar remain subject to a call for action, and Bulgaria, Côte d’Ivoire, the Democratic Republic of the Congo and Monaco left the grey list. The lists change three times a year, so check the current version."},
+/* ---- Module 5 ---- */
+{id:"m5a",mod:5,t:"From raw data to an alert",
+ p:["A monitoring system takes customer data (KYC, risk rating, segment) and transaction data (amount, date, channel, counterparty, country), then runs detection logic over a lookback period.",
+ "Data quality decides everything downstream. A missing country code, a mislabelled transaction type or an unmapped product can silently stop a scenario from working.",
+ "Most banks combine rule-based scenarios (clear thresholds) with behavioural models that compare a customer with their own history or peer group.",
+ "Alerts are often grouped by customer into cases so one analyst sees the full picture rather than fragments."]},
+{id:"m5b",mod:5,t:"Scenarios, thresholds and segments",
+ p:["A scenario is logic aimed at one typology: structuring, rapid movement, high-risk geography, many senders, dormant reactivation, profile deviation.",
+ "Parameters set its sensitivity: an amount, a count, a time window, a percentage. Each one trades coverage against noise.",
+ "Segmentation applies different thresholds to different customer groups. $50,000 a month is unremarkable for a distributor and alarming for a student.",
+ "No scenario catches everything. Coverage comes from overlapping scenarios, so a gap in one is covered by another."]},
+{id:"m5c",mod:5,t:"Tuning and model governance",
+ p:["Tuning adjusts thresholds using evidence. Above-the-line testing checks what current alerts produce; below-the-line testing samples activity just under the threshold to see what would be missed.",
+ "Two numbers frame the trade-off: precision (how many alerts are productive) and coverage or detection (how much suspicious activity is caught). Raising thresholds improves the first and can hurt the second.",
+ "Monitoring systems are models, so model risk management applies: documented design, independent validation, ongoing performance review and change control.",
+ "Analyst feedback matters. Recurring false positives with the same explanation are evidence for tuning or segmentation, and they should be recorded consistently."],
+ ex:"Lowering a structuring scenario’s floor from $8,000 to $3,000 may catch smurfing deposits of $3,000–$4,800, but it will also flag many ordinary business deposits. Below-the-line testing shows whether the extra alerts are worth it."},
+{id:"m5d",mod:5,t:"Alert lifecycle and quality",
+ p:["Typical flow: alert generated → triage (quick check for obvious explanation or duplication) → investigation → disposition → quality assurance → SAR decision where needed.",
+ "Each step has a service level. Ageing alerts are a regulatory concern because they delay SAR filing deadlines.",
+ "Quality assurance samples closed and escalated work for accuracy, evidence and narrative quality. Findings feed back into training.",
+ "Good productivity is consistent, well-evidenced decisions, not the largest number of closures."]},
+/* ---- Module 6 ---- */
+{id:"m6a",mod:6,t:"Cash patterns",
+ p:["Structuring: one person splits cash into amounts under $10,000, often across days or branches. Intent to evade is the offence.",
+ "Smurfing: several people make the deposits, sometimes into one account, each well below any threshold.",
+ "Funnel accounts: cash deposited in one region and withdrawn quickly in another, often linked to drug or smuggling proceeds moving back to source.",
+ "Commingling: illicit cash mixed into a genuine cash-intensive business, showing up as revenue that is too high, too steady or out of line with the business’s size and card mix."]},
+{id:"m6b",mod:6,t:"Movement patterns",
+ p:["Pass-through or rapid movement: funds arrive and leave within days with little retained, often to new beneficiaries or other countries.",
+ "Shell company activity: newly formed entities with no payroll, rent or suppliers, whose accounts only move round sums between other companies.",
+ "Round-tripping: money leaves and returns disguised as investment or loans, creating apparently legitimate income.",
+ "Dormant reactivation: a quiet account suddenly handles large values, a common sign of an account sold or recruited for laundering."]},
+{id:"m6c",mod:6,t:"Third parties and money mules",
+ p:["A money mule receives and passes on funds for others, knowingly or not. Students, job seekers and romance-scam victims are common recruits.",
+ "Signs: many unrelated senders, values inconsistent with the customer’s income, rapid cash withdrawals or onward transfers, and new P2P or crypto activity.",
+ "Mule accounts are the plumbing for fraud. Many victims of scams later become unwitting mules themselves.",
+ "Unwitting mules may be victims as well as subjects. The narrative records facts and leaves intent to investigators."],
+ off:"FinCEN’s September 2023 alert on ‘pig butchering’ virtual currency investment scams describes fake online relationships that lead victims into bogus crypto platforms; SARs should use the key term FIN-2023-PIGBUTCHERING."},
+{id:"m6d",mod:6,t:"Trade-based laundering",
+ p:["TBML disguises value transfer as trade: over- or under-invoicing, multiple invoicing for one shipment, phantom shipments and goods that do not match the business.",
+ "Analysts rarely see the goods, but can see the payments: round amounts, payments to unrelated third parties, routes through high-risk jurisdictions, and payment descriptions that conflict with the business.",
+ "Ask whether the counterparty, product and price make commercial sense for this customer.",
+ "Request invoices, bills of lading or contracts where procedures allow, and check that names and amounts reconcile."]},
+{id:"m6e",mod:6,t:"Fraud-linked patterns",
+ p:["Elder financial exploitation: sudden large withdrawals, new ‘friends’ or caregivers directing transactions, wires to unknown parties, and confusion about recent activity.",
+ "Business email compromise: urgent payment changes to new beneficiary accounts, often abroad, followed by quick onward transfers.",
+ "Check fraud: altered or counterfeit checks deposited to new accounts, then funds withdrawn before the check returns.",
+ "Victims need protection as well as reporting. Many banks can delay a transaction or contact a trusted person, under their policies."],
+ off:"FinCEN’s Advisory on Elder Financial Exploitation (June 2022) defines it as the illegal or improper use of an older adult’s funds, property or assets, and asks SAR filers to use the key term EFE FIN-2022-A002. Its February 2023 alert covers mail theft-related check fraud."},
+{id:"m6f",mod:6,t:"Virtual assets",
+ p:["Banks see crypto through its edges: transfers to and from exchanges, crypto ATMs (kiosks) and peer-to-peer sellers.",
+ "Red flags include rapid conversion of fiat to crypto and back, exchanges in high-risk jurisdictions, use of mixers or privacy coins reported by the customer’s own disclosures, and customers coached by a third party.",
+ "Many crypto alerts are scam victims, not launderers. Note who is directing the activity.",
+ "Customer due diligence still applies: a sudden pivot to large crypto purchases should match income and stated purpose."]},
+/* ---- Module 7 ---- */
+{id:"m7a",mod:7,t:"Triage: the first ten minutes",
+ p:["Read the alert first: which scenario, which transactions, what period, and what parameter was breached. The scenario tells you what risk you are testing.",
+ "Check history: prior alerts, prior SARs, open cases, and any recent KYC refresh or customer contact.",
+ "Look for an obvious explanation that the file already documents. If one exists and is supported, record it and close.",
+ "If not, scope the investigation: which accounts, which related parties, how far back."]},
+{id:"m7b",mod:7,t:"Analysing the activity",
+ p:["Compare actual with expected across value, volume, frequency, direction, counterparties, channels, geography and timing.",
+ "Follow the money both ways: where it came from and where it went, as far as your records allow.",
+ "Quantify the change: “credits were 4.2 times the stated monthly income” is stronger than “activity increased significantly”.",
+ "Look beyond the trigger. The alerting transactions may be the least interesting part of the account."]},
+{id:"m7c",mod:7,t:"Evidence and customer outreach",
+ p:["Separate facts (in the records), observations (patterns you found), unverified claims and assumptions. Only facts and reasoned findings belong in conclusions.",
+ "Internal evidence: KYC, statements, wire details, check images, prior cases. External: registries, court records, reputable news, enforcement releases.",
+ "A request for information (RFI) to the customer can resolve gaps, but must be neutral and routine in tone so nothing hints at a SAR.",
+ "A customer explanation is information to test against the records, not proof. Note whether documents were provided and whether they reconcile."]},
+{id:"m7d",mod:7,t:"Deciding and writing it up",
+ p:["Dispositions are usually: close with rationale, further investigation (RFI, EDD, account review), or escalate for SAR consideration. Who decides to file depends on your institution’s governance.",
+ "A SAR narrative should answer who, what, when, where and why, and describe how the activity was carried out, in chronological order with amounts and dates.",
+ "Write for a reader who has never seen the account: plain language, no internal jargon, no speculation about guilt.",
+ "Closing notes deserve the same discipline. Someone may review the decision years later."],
+ ex:"Weak: “Customer is clearly a mule.” Strong: “Between Sep 20 and Sep 29 the account received 16 P2P transfers totalling $9,840 from senders with no apparent link to the customer; $4,000 was withdrawn in cash and $5,800 wired to Ostravia by Oct 1.”"},
+/* ---- Module 8 ---- */
+{id:"m8a",mod:8,t:"Spreadsheet skills for case work",
+ p:["Load a transaction export into an Excel Table so formulas and filters expand as rows are added.",
+ "PivotTables answer most case questions fast: totals by counterparty, by month, by channel or by branch.",
+ "SUMIFS and COUNTIFS count and total with conditions, such as cash deposits between $8,000 and $9,999. XLOOKUP pulls KYC fields into a transaction list.",
+ "Absolute references ($A$1) keep a formula pointing at a fixed cell when copied, which is useful for thresholds.",
+ "Check for duplicates and numbers stored as text before trusting totals, and always work on a copy of the original export."]},
+{id:"m8b",mod:8,t:"Open-source research",
+ p:["Start with official sources: state business registries, court records, regulator and DOJ announcements, OFAC search.",
+ "Use search operators to cut noise: exact phrases in quotes, a name plus terms such as fraud, indicted or sanctions, and a site filter for official domains.",
+ "Record what you searched, when, and what you found, including null results. Another analyst should be able to repeat it.",
+ "Assess every result for reliability, relevance and date before it goes into a case. Never contact the subject or create accounts to view their profiles."]}
+];
+
+/* question bank: l = lesson id, a = index of correct option */
+const QB=[
+{l:"m1a",q:"Which stage of laundering is usually the riskiest for a criminal?",o:["Integration","Placement","Layering","Reporting"],a:1,e:"Placement is when illicit funds, often cash, first enter a regulated institution and are most exposed to detection."},
+{l:"m1a",q:"Funds are wired through three countries and two shell companies in a week. Which stage does this best illustrate?",o:["Placement","Layering","Integration","Collection"],a:1,e:"Layering creates distance between the money and its source."},
+{l:"m1a",q:"Laundered funds are used to buy a rental property. Which stage is this?",o:["Placement","Layering","Integration","Structuring"],a:2,e:"Integration returns the money to the economy looking legitimate."},
+{l:"m1b",q:"What is a predicate offence?",o:["A report filed with FinCEN","The underlying crime that generated the illicit funds","A type of sanctions list","A monitoring scenario"],a:1,e:"Laundering requires an underlying crime such as fraud, corruption or drug trafficking."},
+{l:"m1b",q:"Which is one of FinCEN’s national AML/CFT priorities?",o:["Late tax filing","Fraud","Overdraft fees","Credit scoring"],a:1,e:"The eight priorities include corruption, cybercrime, terrorist financing, fraud, criminal organisations, drug trafficking, human trafficking and proliferation financing."},
+{l:"m1b",q:"Must an analyst prove which crime produced the funds before escalating?",o:["Yes, always","No; the task is to recognise activity with no reasonable explanation and report it","Only for cash","Only if the customer admits it"],a:1,e:"Proving the predicate is for law enforcement."},
+{l:"m1c",q:"What is the key difference between terrorist financing and money laundering?",o:["TF only uses crypto","TF hides where money is going and can use clean funds","TF always involves large sums","There is no difference"],a:1,e:"Laundering conceals origin; terrorist financing conceals destination and purpose."},
+{l:"m1c",q:"Which of these can never be an indicator of terrorist financing on its own?",o:["Funds pooled from many people and sent to a conflict area","A charity whose spending does not match its mission","The customer’s religion","Sudden unexplained transfers to new beneficiaries abroad"],a:2,e:"Assessments rest on behaviour, never on religion, nationality or ethnicity."},
+{l:"m1d",q:"In the three lines of defence model, who provides independent testing?",o:["The business line","Compliance","Internal audit","The customer"],a:2,e:"Audit is the third line and tests both the business and compliance."},
+{l:"m1d",q:"Why are banks considered gatekeepers?",o:["They set criminal law","Almost every laundering method eventually needs an account or payment rail","They prosecute offenders","They issue sanctions"],a:1,e:"Access to the financial system is where laundering can be spotted."},
+{l:"m2a",q:"Which agency writes the BSA regulations?",o:["OCC","FinCEN","OFAC","FINRA"],a:1,e:"FinCEN administers the BSA; its rules are in 31 CFR Chapter X."},
+{l:"m2a",q:"Which law made money laundering a federal crime?",o:["Bank Secrecy Act 1970","Money Laundering Control Act 1986","USA PATRIOT Act 2001","AML Act of 2020"],a:1,e:"The BSA created reporting; the 1986 Act criminalised laundering."},
+{l:"m2a",q:"Which is a required element of a bank AML/CFT program?",o:["A marketing plan","A designated BSA officer","A crypto trading desk","Annual customer surveys"],a:1,e:"Programs include internal controls, independent testing, a BSA officer, training and customer due diligence."},
+{l:"m2b",q:"Three cash deposits of $4,000, $3,500 and $3,000 are made by one customer on the same business day. What applies?",o:["Nothing, each is under $10,000","Aggregated, they exceed $10,000 and may require a CTR","A SAR is automatically required","A 314(a) report"],a:1,e:"CTR aggregation combines same-day cash transactions by or for the same person."},
+{l:"m2b",q:"A customer splits cash deposits to avoid a CTR, but the money is from a legitimate business. Is this lawful?",o:["Yes, the money is clean","No, structuring is a crime regardless of the source","Only if under $5,000","Only if done at one branch"],a:1,e:"31 U.S.C. § 5324 prohibits structuring itself."},
+{l:"m2b",q:"For how long must BSA records generally be kept?",o:["One year","Three years","Five years","Indefinitely"],a:2,e:"The general BSA retention period is five years."},
+{l:"m2b",q:"Under FinCEN’s October 2025 SAR FAQs, when is an initial SAR generally due?",o:["Within 15 days of the transaction","30 days after detecting facts that may require filing, up to 60 if no suspect is identified","90 days after the alert","Only when law enforcement asks"],a:1,e:"Reporting may not be delayed more than 60 days after detection."},
+{l:"m2b",q:"A colleague tells a customer their account is under SAR review. What is this?",o:["Good customer service","Tipping off, which is prohibited","An RFI","A 314(b) request"],a:1,e:"SAR confidentiality forbids disclosing that a SAR exists or is being considered."},
+{l:"m2c",q:"What does Section 314(b) allow?",o:["FinCEN to freeze accounts","Registered institutions to share information about possible laundering with each other","Customers to see SARs","Banks to skip CIP"],a:1,e:"314(b) gives legal protection for voluntary information sharing between registered institutions."},
+{l:"m2c",q:"A customer matches a 314(a) list. What should follow?",o:["Tell the customer","Report the match as instructed and review the customer’s activity under procedure","Close the account at once","Ignore it"],a:1,e:"A match is not proof, but it warrants review."},
+{l:"m3a",q:"Which is NOT a minimum identification element for an individual?",o:["Name","Date of birth","Employer","Identification number"],a:2,e:"The minimum is name, date of birth, address and an identification number."},
+{l:"m3a",q:"Verifying that a company is registered tells you:",o:["Who owns it","That it legally exists, not who owns or controls it","That it is low risk","That it is not sanctioned"],a:1,e:"Existence, ownership and control are separate questions."},
+{l:"m3b",q:"Under the ownership prong, a beneficial owner holds:",o:["10% or more","25% or more","50% or more","Any shares"],a:1,e:"Each 25%+ owner, plus one person with significant control."},
+{l:"m3b",q:"What did FinCEN’s 13 February 2026 exceptive relief order allow?",o:["Ending beneficial ownership rules","Verifying beneficial owners at first account opening and as risk requires, rather than at every new account","Raising the threshold to 50%","Skipping CIP for businesses"],a:1,e:"The relief is optional; the requirement itself remains."},
+{l:"m3b",q:"A public registry shows no owner for a company. What can you conclude?",o:["It has no owners","Nothing on its own; it is a gap to close","It is a shell","It is sanctioned"],a:1,e:"Missing public data is not evidence of no ownership."},
+{l:"m3c",q:"Why does a specific customer profile matter for monitoring?",o:["It sets prices","It defines normal activity so deviations can be judged","It replaces screening","It is only for audit"],a:1,e:"Monitoring compares actual activity with the profile."},
+{l:"m3c",q:"Which event should normally prompt a risk rating review?",o:["The customer changes their PIN","Adverse news about the customer","A routine card purchase","A branch renovation"],a:1,e:"Trigger events include adverse media, new products, new countries and repeated alerts."},
+{l:"m3d",q:"What is the difference between source of funds and source of wealth?",o:["They are the same","Source of funds is where a specific amount came from; source of wealth is how overall wealth was built","Source of wealth is only for companies","Source of funds applies only to cash"],a:1,e:"Both are typical EDD questions."},
+{l:"m3d",q:"Which customer type typically calls for EDD?",o:["A salaried employee with payroll deposits","A money services business","A student with a small allowance","A retiree with a pension"],a:1,e:"MSBs, PEPs, cash-intensive businesses and complex structures are typical EDD categories."},
+{l:"m4a",q:"Under the OFAC 50 Percent Rule, two blocked persons own 30% each of a company. The company is:",o:["Not affected, as neither owns 50%","Treated as blocked because aggregate ownership is 60%","Only restricted for exports","On the grey list"],a:1,e:"Ownership by blocked persons is aggregated."},
+{l:"m4a",q:"Sanctions liability is described as strict. What does that mean?",o:["Only intentional violations count","Violations can occur without intent","Only large banks are liable","It applies only abroad"],a:1,e:"That is why real-time screening matters."},
+{l:"m4a",q:"Blocked property must generally be reported to OFAC within:",o:["24 hours","10 business days","30 days","90 days"],a:1,e:"Blocking reports are due within 10 business days."},
+{l:"m4b",q:"A screening hit shares a common name but has a different date of birth and country. What next?",o:["Block the account","Document the mismatch and resolve it as a false positive under procedure","Ask the customer if they are sanctioned","File a SAR"],a:1,e:"Compare identifiers and document the basis; never ask the customer."},
+{l:"m4b",q:"A payment hit cannot be ruled out. What should happen?",o:["Release it to avoid delays","Escalate and hold under procedure","Delete the alert","Ask the beneficiary"],a:1,e:"Unresolved potential matches are escalated before release."},
+{l:"m4c",q:"Which statement about PEPs is correct?",o:["PEPs must be exited","PEP status raises corruption risk and calls for proportionate due diligence","PEPs are exempt from monitoring","Only foreign officials count"],a:1,e:"PEP status is a risk factor, not evidence of wrongdoing."},
+{l:"m4c",q:"News reports that a customer was charged but later acquitted. How should this be recorded?",o:["As a conviction","Accurately, noting the acquittal","Ignored","As proof of fraud"],a:1,e:"Status matters: allegation, charge, conviction and acquittal are different facts."},
+{l:"m4d",q:"What does it mean for a country to be on the FATF grey list?",o:["All transactions must be rejected","It is under increased monitoring while it fixes deficiencies","It is sanctioned by OFAC","It has no AML laws"],a:1,e:"Grey listing does not mean automatic rejection."},
+{l:"m4d",q:"As of the 30 October 2026 FATF plenary, which jurisdictions are subject to a call for action?",o:["DPRK, Iran and Myanmar","Monaco and Bulgaria","All EU states","None"],a:0,e:"Always check the current list before citing it."},
+{l:"m5a",q:"Why does data quality matter so much in monitoring?",o:["It affects colours on dashboards","Missing or mislabelled fields can silently stop scenarios from working","It does not matter","It only affects reports"],a:1,e:"Detection logic is only as good as the data it runs on."},
+{l:"m5a",q:"What is a behavioural model in monitoring?",o:["A fixed dollar threshold","Logic comparing a customer with their own history or peers","A sanctions list","A customer survey"],a:1,e:"Most programs combine rules and behavioural models."},
+{l:"m5b",q:"Why do banks segment customers when setting thresholds?",o:["To reduce staff","Because normal activity differs widely between customer types","To avoid CTRs","To meet marketing goals"],a:1,e:"Segmentation applies sensible thresholds per group."},
+{l:"m5b",q:"How do monitoring programs handle the fact that no single scenario catches everything?",o:["They ignore gaps","Overlapping scenarios cover each other’s gaps","They file more CTRs","They stop monitoring"],a:1,e:"Coverage comes from layered scenarios."},
+{l:"m5c",q:"What is below-the-line testing?",o:["Reviewing closed SARs","Sampling activity just under a threshold to see what would be missed","Testing analysts’ typing speed","Checking sanctions lists"],a:1,e:"It informs whether thresholds can be raised safely."},
+{l:"m5c",q:"Raising a scenario threshold usually:",o:["Improves precision and may reduce detection","Increases alerts","Has no effect","Removes all false positives"],a:0,e:"That trade-off is the heart of tuning."},
+{l:"m5c",q:"Why does model risk management apply to monitoring systems?",o:["They are marketing tools","They are models whose design and performance need validation","Regulators require colour coding","They replace analysts"],a:1,e:"Design, validation, performance review and change control all apply."},
+{l:"m5d",q:"Why are ageing alerts a concern?",o:["They slow the computer","They can delay SAR filing past deadlines","They improve quality","They are never a concern"],a:1,e:"Service levels protect filing timelines."},
+{l:"m5d",q:"What does good analyst productivity mean?",o:["Closing the most alerts","Consistent, well-evidenced decisions","Escalating everything","Skipping narratives"],a:1,e:"Quality outweighs volume."},
+{l:"m6a",q:"Several unrelated people deposit $4,000 each into one account on the same day. This is:",o:["Integration","Smurfing","A CD rollover","Payroll"],a:1,e:"Smurfing uses multiple people to place cash below thresholds."},
+{l:"m6a",q:"Cash goes in at branches in one region and comes out quickly in another. This typology is a:",o:["Funnel account","Dormant account","Payroll account","Trust account"],a:0,e:"Funnel accounts move value between regions."},
+{l:"m6a",q:"A salon’s cash deposits are triple its stated revenue, though KYC says most sales are card. This may indicate:",o:["Commingling","Normal growth","A CTR exemption","Interest income"],a:0,e:"Illicit cash mixed into business revenue."},
+{l:"m6b",q:"A new company with no payroll or rent moves large round sums in and out within a day. This suggests:",o:["A payroll bureau","Shell or pass-through activity","A savings account","Normal trade"],a:1,e:"No operating footprint and rapid movement are classic shell indicators."},
+{l:"m6b",q:"Why is dormant account reactivation a red flag?",o:["Dormant accounts pay interest","Quiet accounts are often sold or recruited for laundering","It breaks the system","It is never a red flag"],a:1,e:"Unless explained, sudden large activity on a dormant account warrants review."},
+{l:"m6c",q:"Which pattern best fits a money mule?",o:["Steady salary and bills","Many unrelated senders followed by rapid cash withdrawals or onward transfers","One annual bonus","Monthly rent payments"],a:1,e:"Mules receive and pass on funds for others."},
+{l:"m6c",q:"How should a narrative treat a possibly unwitting mule?",o:["State they are a criminal","Record facts and leave intent to investigators","Omit them","Contact them to warn them"],a:1,e:"Mules may be victims too; stick to facts."},
+{l:"m6d",q:"Which is a trade-based laundering indicator visible in payments?",o:["Payroll on the 15th","Payments for goods that do not match the customer’s business","Utility bills","Card purchases"],a:1,e:"Goods, prices and counterparties should make commercial sense."},
+{l:"m6d",q:"What documents can help test a suspected TBML payment?",o:["Payslips","Invoices, bills of lading or contracts","Credit scores","Marketing brochures"],a:1,e:"Check that names and amounts reconcile."},
+{l:"m6e",q:"An older customer suddenly wires savings to a new overseas ‘friend’ met online. This may indicate:",o:["Normal investing","Elder financial exploitation or a romance scam","A CTR","Structuring"],a:1,e:"FinCEN’s 2022 advisory lists such red flags."},
+{l:"m6e",q:"Which key term does FinCEN ask filers to use for elder financial exploitation SARs?",o:["EFE FIN-2022-A002","CTR-2022","OFAC-50","PEP-2022"],a:0,e:"Advisory key terms help FinCEN route and analyse filings."},
+{l:"m6e",q:"A supplier emails urgently to change its bank details to a new overseas account. This is a common sign of:",o:["Business email compromise","Payroll","A CD maturity","Interest posting"],a:0,e:"BEC relies on urgent changes to beneficiary details."},
+{l:"m6f",q:"How do banks usually see virtual asset activity?",o:["Directly on the blockchain","Through transfers to and from exchanges, kiosks and P2P sellers","They never see it","Only through CTRs"],a:1,e:"Banks see the fiat edges of crypto activity."},
+{l:"m6f",q:"A customer is coached by a third party to buy crypto at a kiosk. What should the analyst consider?",o:["The customer may be a scam victim","It is always laundering","It is normal investing","Nothing"],a:0,e:"Many crypto alerts involve victims; note who directs the activity."},
+{l:"m7a",q:"What should an analyst read first on a new alert?",o:["The largest amount","The scenario, triggering transactions and review period","The customer’s social media","Prior SAR narratives only"],a:1,e:"The scenario tells you which risk you are testing."},
+{l:"m7a",q:"The file already documents a supported explanation for the alerted activity. What is the right step?",o:["Escalate anyway","Record the explanation and close","Ask the customer again","Delete the alert"],a:1,e:"Supported explanations allow a documented closure."},
+{l:"m7b",q:"Which statement is strongest in an analysis?",o:["Activity increased a lot","Credits were 4.2 times the stated monthly income","The customer seems suspicious","Things look odd"],a:1,e:"Quantify the change."},
+{l:"m7b",q:"Why look beyond the alerting transactions?",o:["To fill time","The rest of the account may show more important activity","Regulations forbid it","It is never useful"],a:1,e:"The trigger may be the least interesting part."},
+{l:"m7c",q:"“The customer is moving criminal proceeds”, written with no supporting evidence, is:",o:["A fact","An observation","An assumption","A finding"],a:2,e:"Assumptions never belong in conclusions."},
+{l:"m7c",q:"How should an RFI to a customer be worded?",o:["Mention the SAR review","Neutral and routine, with no hint of a SAR","Threatening closure","Accusatory"],a:1,e:"Avoid any risk of tipping off."},
+{l:"m7c",q:"A customer emails an explanation with no documents. How should it be treated?",o:["As verified evidence","As information to test against the records","As irrelevant","As grounds to close"],a:1,e:"Note whether documents were provided and reconcile."},
+{l:"m7d",q:"Which elements should a SAR narrative cover?",o:["Only the amount","Who, what, when, where, why and how, in chronological order","The analyst’s opinion of the customer","Internal system codes"],a:1,e:"Write for a reader who has never seen the account."},
+{l:"m7d",q:"Which is a typical disposition option?",o:["Fine the customer","Escalate for SAR consideration","Publish the alert","Notify the customer of the SAR"],a:1,e:"Close, investigate further, or escalate for SAR consideration."},
+{l:"m8a",q:"Which tool quickly totals transactions by counterparty?",o:["A PivotTable","Spell check","Page layout","Comments"],a:0,e:"PivotTables answer most grouping questions fast."},
+{l:"m8a",q:"Which formula counts cash deposits between $8,000 and $9,999?",o:["SUM","COUNTIFS with two amount conditions and a type condition","VLOOKUP on its own","CONCAT"],a:1,e:"COUNTIFS applies multiple criteria."},
+{l:"m8a",q:"You copy a formula containing $B$2 down a column. What happens to that reference?",o:["It changes to B3, B4…","It stays $B$2","It becomes an error","It becomes $B3"],a:1,e:"Absolute references do not move."},
+{l:"m8a",q:"Which function pulls a customer’s risk rating from a KYC sheet into a transaction list by customer ID?",o:["XLOOKUP","ROUND","TRIM","NOW"],a:0,e:"XLOOKUP (or VLOOKUP/INDEX-MATCH) joins data on a shared key."},
+{l:"m8a",q:"A SUM of an amount column looks too low. What is a likely cause?",o:["Some amounts are stored as text","The font is too small","The sheet is protected","Gridlines are hidden"],a:0,e:"Numbers stored as text are ignored by SUM; convert them before totalling."},
+{l:"m8b",q:"Which search best narrows results for adverse news on a subject?",o:["The subject’s first name only","\"Full Name\" plus terms such as fraud OR indicted OR sanctions","A random keyword","The bank’s name"],a:1,e:"Exact-phrase names combined with risk terms cut noise."},
+{l:"m3c",q:"A customer’s profile says ‘personal use’ with no expected values. Why is this a problem?",o:["It is not a problem","It gives no baseline, making alerts hard to resolve","It breaks screening","It forces a SAR"],a:1,e:"Specific, current profiles make deviations measurable."},
+{l:"m4d",q:"A customer pays a supplier in a grey-list country with matching invoices and a long trade history. What is the right view?",o:["Reject the payment","Geography raises risk, but documented, consistent trade can be routine","File a SAR automatically","Block the account"],a:1,e:"Geography never decides a case alone."},
+{l:"m5b",q:"A scenario flags 'three or more cash deposits of $8,000–$9,999 within seven days'. Which parameters does it use?",o:["Amount band, count and time window","Country and channel","Customer age","Interest rate"],a:0,e:"Amounts, counts and windows set a scenario’s sensitivity."},
+{l:"m7d",q:"Why should closing notes be written as carefully as SAR narratives?",o:["They are sent to FinCEN","Reviewers, auditors or examiners may rely on them years later","They are published","They are not important"],a:1,e:"Defensible closures need clear, factual rationale."},
+{l:"m8b",q:"Which is the most reliable OSINT source?",o:["An anonymous forum post","A state business registry","A social media comment","An undated blog"],a:1,e:"Start with official sources."},
+{l:"m8b",q:"Which practice is required in OSINT research for a case?",o:["Contacting the subject","Recording searches, dates and results, including nothing found","Creating fake profiles","Keeping no notes"],a:1,e:"Research should be repeatable by another analyst."}
+];
+
+const GLOSS=[
+["Alert","A system notification that a monitoring scenario has been triggered. Not proof of wrongdoing."],
+["Aggregation","Combining a person’s same-day cash transactions to test the CTR threshold."],
+["Below-the-line testing","Sampling activity just under a threshold to see what a scenario would miss."],
+["Beneficial owner","Each individual owning 25% or more of a legal entity, plus one individual with significant control."],
+["BSA","Bank Secrecy Act (1970); 31 U.S.C. Chapter 53, implemented in 31 CFR Chapter X."],
+["BEC","Business email compromise: fraudulent payment instructions sent from a hijacked or spoofed email account."],
+["Case","A grouped investigation of related alerts, usually by customer."],
+["CDD","Customer due diligence: identity, ownership, nature and purpose, risk profile and ongoing monitoring."],
+["CTR","Currency Transaction Report for cash over $10,000 in a business day."],
+["EDD","Enhanced due diligence for higher-risk relationships."],
+["FATF","Financial Action Task Force, the global AML/CFT standard setter."],
+["False positive","An alert that, after review, is explained and not suspicious."],
+["FinCEN","Financial Crimes Enforcement Network, the Treasury bureau that administers the BSA."],
+["Funnel account","An account receiving deposits in one place with funds withdrawn quickly elsewhere."],
+["Grey list","FATF jurisdictions under increased monitoring."],
+["Integration","Laundered funds re-entering the economy looking legitimate."],
+["Layering","Moving funds to obscure their origin."],
+["Money mule","Someone who receives and passes on funds for others, knowingly or not."],
+["OFAC","Office of Foreign Assets Control, which administers US sanctions."],
+["OSINT","Open-source intelligence: research using publicly available information."],
+["Pass-through","High inflow and outflow with little retained in the account."],
+["PEP","Politically exposed person, plus family and close associates."],
+["Placement","Illicit funds first entering the financial system."],
+["Precision","Share of alerts that prove productive."],
+["Predicate offence","The underlying crime that generates illicit proceeds."],
+["RFI","Request for information sent to a customer to resolve gaps."],
+["SAR","Suspicious Activity Report filed with FinCEN."],
+["Scenario","Monitoring logic aimed at one risk pattern."],
+["SDN List","OFAC’s Specially Designated Nationals and Blocked Persons List."],
+["Smurfing","Structuring carried out by several people."],
+["Source of funds","Where a specific amount of money came from."],
+["Source of wealth","How a customer built their overall wealth."],
+["Structuring","Splitting cash to avoid reporting; a crime under 31 U.S.C. § 5324."],
+["TBML","Trade-based money laundering: value moved through misrepresented trade."],
+["Tipping off","Disclosing that a SAR exists or is being considered; prohibited."],
+["50 Percent Rule","OFAC rule treating entities 50%+ owned in aggregate by blocked persons as blocked."],
+["314(a) / 314(b)","PATRIOT Act provisions for law enforcement requests to banks (a) and voluntary sharing between institutions (b)."]
+];
+
+const SOURCES=[
+["FFIEC BSA/AML Examination Manual","https://bsaaml.ffiec.gov/manual"],
+["FFIEC Appendix F: Money laundering and terrorist financing red flags","https://bsaaml.ffiec.gov/manual/Appendices/07"],
+["FinCEN AML/CFT National Priorities (June 2021)","https://www.fincen.gov/news/news-releases/fincen-issues-first-national-amlcft-priorities-and-accompanying-statements/"],
+["FinCEN SAR FAQs (October 2025)","https://www.fincen.gov/system/files/2025-10/SAR-FAQs-October-2025.pdf"],
+["FinCEN SAR advisory key terms","https://www.fincen.gov/resources/suspicious-activity-report-sar-advisory-key-terms"],
+["FinCEN Advisory on Elder Financial Exploitation (June 2022)","https://fincen.gov/sites/default/files/advisory/2022-06-15/FinCEN%20Advisory%20Elder%20Financial%20Exploitation%20FINAL%20508.pdf"],
+["FinCEN beneficial ownership exceptive relief order (February 2026)","https://www.fincen.gov/system/files/2026-02/FinCEN-Order-CCDExceptiveRelief.pdf"],
+["FinCEN proposed AML/CFT program rule (April 2026)","https://www.fincen.gov/system/files/2026-04/Key-Changes-Program-NPRM.pdf"],
+["FATF jurisdictions under increased monitoring (October 2026)","https://www.fatf-gafi.org/en/publications/High-risk-and-other-monitored-jurisdictions/increased-monitoring-october-2026.html"],
+["FATF plenary outcomes (October 2026)","https://www.fatf-gafi.org/en/publications/Fatfgeneral/outcomes-fatf-plenary-october-2026.html"]
+];
+
+</script>
+<script>
+{
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money=n=>"$"+Math.round(n).toLocaleString("en-US");
+const BASE=Date.UTC(2026,7,1);
+const dstr=d=>new Date(BASE+d*864e5).toLocaleDateString("en-US",{month:"short",day:"numeric",timeZone:"UTC"});
+const KEY="amlLab.v2";
+let P={done:{},cases:{},quiz:{},sess:{},cfg:null,missed:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s)P=Object.assign(P,s)}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(P))}catch(e){}};
+QB.forEach((q,i)=>{q.i=i;q.m=LESSONS.find(l=>l.id===q.l).mod});
+const lessonOf=q=>LESSONS.find(l=>l.id===q.l);
+
+/* ---------- synthetic bank: 90 days, Aug 1 to Oct 29 2026 (all fictional) ---------- */
+let S=97;const R=()=>(S=S*16807%2147483647)/2147483647;
+const ri=(a,b)=>Math.round(a+R()*(b-a));const pick=a=>a[Math.floor(R()*a.length)];
+const HR=["Corvania","Ostravia","Belmora"];
+const BR=["Downtown (Columbus)","Northgate (Columbus)","Riverside (Dayton)","Eastfield (Cincinnati)","Harbor (Toledo)","Airport (Cleveland)"];
+const TYPES={cash_in:"Cash deposit",cash_out:"Cash withdrawal",wire_in:"Wire in",wire_out:"Wire out",ach_in:"ACH credit",ach_out:"ACH debit",p2p_in:"P2P in",p2p_out:"P2P out",card:"Card purchase"};
+const isIn=t=>/_in$/.test(t.type);
+const C=[],T=[];let tid=50000;
+const tx=(c,day,type,amt,cp,ctry,br)=>{if(day<0||day>89)return;T.push({id:"TX"+(++tid),c:c.id,day,type,amt:Math.round(amt),cp:cp||"",ctry:ctry||"US",br:br||(type.indexOf("cash")===0?c.br:"")})};
+const mk=o=>{const c=Object.assign({id:"CU-"+(40117+C.length*13),br:BR[C.length%2],bad:false,typ:"Explained by customer information",notes:"",ans:"close",alt:["investigate"],why:"",fact:null},o);C.push(c);return c};
+const salary=(c,amt,emp)=>{for(let d=ri(0,13);d<90;d+=14)tx(c,d,"ach_in",amt*(.98+R()*.04),emp)};
+const spend=(c,n,lo,hi)=>{for(let i=0;i<n;i++)tx(c,ri(0,89),"card",ri(lo,hi),pick(["Grocery","Fuel","Pharmacy","Online retail","Restaurant","Hardware"]))};
+const atm=(c,n)=>{for(let i=0;i<n;i++)tx(c,ri(0,89),"cash_out",ri(3,15)*20,"ATM")};
+const bills=(c,rent,cp)=>{for(let d=ri(0,4);d<90;d+=30){tx(c,d,"ach_out",rent,cp||"Mortgage servicer");tx(c,d+ri(5,9),"ach_out",ri(120,260),"Electric utility")}};
+const FN=["Daniel","Maria","James","Aisha","Robert","Linh","Carlos","Emily","Victor","Grace","Samuel","Nadia","Owen","Priya","Elena","Tom","Rachel","Hector","Julia","Kevin","Fatima","Peter","Sofia","Andre","Laura","Ben","Chloe","Ivan"];
+const LN=["Brooks","Okafor","Nguyen","Ramirez","Keller","Patel","Hughes","Moreno","Fischer","Lindqvist","Barros","Coleman","Ivanova","Sato","Dunn","Abbott","Mercer","Walsh","Haddad","Quinn"];
+const nm=()=>pick(FN)+" "+pick(LN);
+const sumT=(id,f)=>T.filter(t=>t.c===id&&f(t)).reduce((s,t)=>s+t.amt,0);
+const cntT=(id,f)=>T.filter(t=>t.c===id&&f(t)).length;
+
+/* scripted: explained alerts (false positives) */
+let c;
+c=mk({nm:"Megan Albright",seg:"Individual",occ:"Dental hygienist, employed full time",risk:"Low",opened:"2017",exp:9500,purpose:"Salary, household bills, savings",
+ notes:"Sep 11: customer told the teller she had sold her 2019 SUV privately. Bill of sale and title transfer copy scanned to the customer file the same day.",
+ why:"A one-off cash deposit, documented by a bill of sale and consistent with a private vehicle sale. No pattern, no third parties, normal activity otherwise. Close with the rationale recorded."});
+salary(c,2150,"Lakeview Dental Group");spend(c,40,15,180);atm(c,5);bills(c,1450);tx(c,41,"cash_in",12400,"Self");
+c.fact=()=>"A single cash deposit of $12,400 was made on Sep 11; a bill of sale for a private vehicle sale is on file.";
+
+c=mk({nm:"Lakeside Grill LLC",seg:"Business",occ:"12-table restaurant, owner-operated since 2014",risk:"Medium",opened:"2014",purpose:"Restaurant receipts, payroll, suppliers",
+ notes:"Owner reported the Riverfront Festival ran over three August weekends. Prior-year history shows similar August peaks. Site visit (2025) confirmed a cash-heavy operation consistent with deposits.",
+ why:"Three deposits just under $10,000 fit a documented seasonal peak repeated from the prior year, deposited at the home branch with no attempt to vary location. Near-threshold amounts alone do not require a SAR (FinCEN FAQ, Oct 2025). Close, citing the history.",ans:"close"});
+for(let d=0;d<90;d++){if(d%7!==1)tx(c,d,"cash_in",ri(900,2600),"Self");tx(c,d,"ach_in",ri(1500,3400),"Card settlement: Paylane")}
+for(let d=3;d<90;d+=7)tx(c,d,"wire_out",ri(3500,7800),pick(["Midwest Foods Supply","Ohio Produce Co","Crown Beverage"]));
+for(let d=6;d<90;d+=14)tx(c,d,"ach_out",ri(13500,15200),"Payroll: Gusto");
+[[15,8600],[18,9300],[21,8900]].forEach(([d,a])=>tx(c,d,"cash_in",a,"Self"));
+c.fact=()=>"Three cash deposits of $8,600, $9,300 and $8,900 were made at the home branch on Aug 16, 19 and 22, during a festival period the owner reported.";
+
+c=mk({nm:"Crestline Payroll Services Inc",seg:"Business",occ:"Payroll bureau for 40 small employers",risk:"Medium",opened:"2019",purpose:"Client payroll funding and disbursement",
+ notes:"KYC section 4: clients fund payroll one business day before the run; the bureau disburses to employees by ACH batch. Client list on file matches the remitters.",
+ why:"Funds in and out within a day is the documented business model of a payroll bureau, and the remitters match the client list. Rapid movement is expected here. Close.",ans:"close"});
+const cl=["Harbor Logistics","Tri-County Dental","Maple HVAC","Greenway Builders"];
+for(let d=2,i=0;d<90;d+=14,i++){const a=ri(58000,66000);tx(c,d,"wire_in",a,"Client: "+cl[i%4]);tx(c,d+1,"ach_out",a-ri(300,900),"Payroll batch: "+cl[i%4])}
+c.fact=()=>"Client funding wires totalling "+money(sumT("CU-40143",t=>t.type==="wire_in"))+" were each followed one day later by payroll ACH batches, matching the documented bureau model.";
+
+c=mk({nm:"Ana Popescu",seg:"Individual",occ:"Registered nurse, employed full time",risk:"Low",opened:"2021",exp:9000,purpose:"Salary, bills, family support abroad",
+ notes:"Onboarding KYC: supports parents in Ostravia with about $2,000 a month. Remittance amount and beneficiary unchanged for three years.",
+ why:"Remittances to a high-risk jurisdiction were declared at onboarding, go to the same family beneficiary at the same amount, and fit the salary. Geography alone is not suspicious. Close.",ans:"close"});
+salary(c,3600,"Mercy Regional Hospital");spend(c,35,12,160);bills(c,1300,"Apartment rent");[5,35,65].forEach(d=>tx(c,d,"wire_out",2000,"R. Popescu (mother)","Ostravia"));
+c.fact=()=>"Three wires of $2,000 were sent to R. Popescu in Ostravia on Aug 6, Sep 5 and Oct 5, matching the remittance declared at onboarding.";
+
+c=mk({nm:"Gordon Pike",seg:"Individual",occ:"Landlord, owns three 4-unit buildings",risk:"Low",opened:"2012",purpose:"Rental income and property expenses",
+ notes:"Lease roll on file lists 12 tenants; names match the P2P senders. Rents are $950 to $1,600 a month.",
+ why:"Many senders is expected for a landlord, and every sender is a tenant on the lease roll paying rent of a consistent size. Close.",ans:"close"});
+const ten=[];for(let i=0;i<12;i++)ten.push(nm());
+for(let m=0;m<3;m++)ten.forEach((k,i)=>tx(c,m*30+ri(0,4),"p2p_in",950+((i*53)%650),k));
+for(let d=8;d<90;d+=30){tx(c,d,"ach_out",4200,"Mortgage servicer");tx(c,d+3,"ach_out",ri(700,1900),"Building maintenance")}spend(c,20,20,250);
+c.fact=()=>"The account received rent payments from 12 senders each month; all 12 appear on the lease roll held on file.";
+
+c=mk({nm:"Helen Whitfield",seg:"Individual",occ:"Architect (on sabbatical until Oct 2026)",risk:"Low",opened:"2010",exp:8000,purpose:"Salary, savings",
+ notes:"Customer returned from a nine-month overseas sabbatical. She provided an estate distribution letter from Whitfield & Cole LLP. The outbound wire went to her own brokerage account (confirmed by account title).",
+ why:"Dormant reactivation is explained by the sabbatical, the inbound funds are documented as an estate distribution, and the money moved to her own brokerage account. Close.",ans:"close"});
+tx(c,67,"wire_in",26000,"Whitfield & Cole LLP (estate)");tx(c,75,"wire_out",20000,"Own account: Fairway Brokerage");spend(c,6,30,140);for(let i=0;i<6;i++)T[T.length-1-i].day=ri(68,89);
+c.fact=()=>"After no activity from Aug 1, a $26,000 wire from an estate attorney arrived on Oct 7 and $20,000 was sent to the customer’s own brokerage account on Oct 15.";
+
+c=mk({nm:"Jared Kim",seg:"Individual",occ:"Sales associate, regional distributor",risk:"Low",opened:"2020",exp:5500,purpose:"Salary and household",
+ notes:"The large ACH credit came from the same employer that pays his salary, labelled ANNUAL BONUS. Employer website describes an annual sales incentive paid in September.",
+ why:"The deviation is driven by an employer bonus from the known payroll source. Behaviour returns to normal afterwards. Close.",ans:"close"});
+salary(c,2600,"Northline Distribution");tx(c,44,"ach_in",34000,"Northline Distribution: ANNUAL BONUS");spend(c,45,10,220);bills(c,1100,"Apartment rent");
+c.fact=()=>"A $34,000 ACH credit labelled ANNUAL BONUS was received on Sep 14 from Northline Distribution, the customer’s salary payer.";
+
+/* scripted: suspicious */
+c=mk({nm:"Ray Dalton",seg:"Individual",occ:"Auto repair technician, employed",risk:"Low",opened:"2022",exp:5200,purpose:"Salary and household",bad:true,typ:"Structuring",ans:"sar",alt:["investigate"],
+ notes:"No business activity or side income declared. On Aug 30 the teller asked about the source of the cash; the customer declined to answer.",
+ why:"Five cash deposits of $8,900 to $9,850 in 14 days at four different branches, with no declared cash income, then most of the total moved out in one payment. Spreading deposits across branches to stay under $10,000 suggests intent to evade the CTR. Escalate for SAR consideration."});
+salary(c,2300,"Speedway Auto Care");spend(c,30,10,140);bills(c,980,"Apartment rent");
+[[20,9400,0],[23,9750,1],[26,8900,2],[29,9200,0],[33,9850,3]].forEach(([d,a,b])=>tx(c,d,"cash_in",a,"Self","US",BR[b]));tx(c,36,"wire_out",42000,"Atlas Title Co (cashier’s check)");
+c.fact=()=>"Five cash deposits totalling $47,100, each between $8,900 and $9,850, were made at four branches between Aug 21 and Sep 3; $42,000 was sent to Atlas Title Co on Sep 6.";
+
+c=mk({nm:"Tasha Greer",seg:"Individual",occ:"Retail cashier, part time",risk:"Low",opened:"2023",exp:3500,purpose:"Wages and personal spending",bad:true,typ:"Smurfing",ans:"sar",alt:["investigate"],
+ notes:"Branch staff noted different people making deposits into this account. The customer has not explained who they are.",
+ why:"Twelve cash deposits of $3,200 to $4,800 by different depositors at several branches, far beyond part-time wages, then a single wire overseas. Several people depositing below any threshold is smurfing. Escalate for SAR consideration. Note that the structuring rule misses this unless its lower bound is lowered."});
+salary(c,1500,"Valley Market");spend(c,25,8,90);
+for(let i=0;i<12;i++)tx(c,40+i*2,"cash_in",ri(32,48)*100,nm(),"US",BR[i%6]);tx(c,64,"wire_out",44000,"Kestrel Imports","Corvania");
+c.fact=()=>"Twelve cash deposits totalling "+money(sumT("CU-40221",t=>t.type==="cash_in"))+" were made by 12 different depositors between Sep 10 and Oct 2; $44,000 was wired to Kestrel Imports in Corvania on Oct 4.";
+
+c=mk({nm:"Halvern Trading Ltd",seg:"Business",occ:"‘General trading’, incorporated 4 months ago",risk:"High",opened:"2026",exp:20000,purpose:"Trading receipts and supplier payments",bad:true,typ:"Pass-through / rapid movement",ans:"sar",alt:["investigate"],
+ notes:"Registered agent address only; no website beyond a holding page. No payroll, rent or operating expenses since opening.",
+ why:"Large wires from one high-risk jurisdiction leave for another within a day, about 98% each time, with no operating expenses. The account is a pass-through for a new company with no visible business. Escalate for SAR consideration."});
+[[10,85000,83500],[38,92000,90100],[70,78000,76500]].forEach(([d,a,b])=>{tx(c,d,"wire_in",a,"Orvel Commodities","Corvania");tx(c,d+1,"wire_out",b,"Saxum Partners","Belmora")});tx(c,30,"ach_out",45,"Bank fee");
+c.fact=()=>"Three wires totalling $255,000 from Orvel Commodities (Corvania) were each followed within one day by wires totalling $250,100 to Saxum Partners (Belmora).";
+
+c=mk({nm:"Jordan Ellis",seg:"Individual",occ:"University student",risk:"Low",opened:"2024",exp:1200,purpose:"Allowance and student spending",bad:true,typ:"Money mule",ans:"sar",alt:["investigate"],
+ notes:"Usual inflow is a $600 monthly allowance from a parent. The 16 senders have no apparent link to the customer.",
+ why:"Sixteen small transfers from unrelated people in ten days, most withdrawn as cash within days and the rest wired abroad, by a student whose only usual income is an allowance. This fits a money mule. Escalate for SAR consideration."});
+[2,32,62].forEach(d=>tx(c,d,"p2p_in",600,"Parent: L. Ellis"));spend(c,25,6,60);
+for(let i=0;i<16;i++)tx(c,50+Math.floor(i*10/16),"p2p_in",ri(280,940),nm());for(let d=52;d<=60;d+=2)tx(c,d,"cash_out",800,"ATM");tx(c,61,"wire_out",5800,"D. Marin","Ostravia");
+c.fact=()=>"Between Sep 20 and Sep 29 the account received 16 P2P transfers totalling "+money(sumT("CU-40247",t=>t.type==="p2p_in"&&t.day>=50))+" from unrelated senders; $4,000 was withdrawn in cash and $5,800 wired to Ostravia by Oct 1.";
+
+c=mk({nm:"Luis Ortega",seg:"Individual",occ:"Self-employed landscaper",risk:"Medium",opened:"2023",exp:4000,purpose:"Business receipts and personal spending",bad:true,typ:"Funnel account",ans:"sar",alt:["investigate"],
+ notes:"Customer lives and works in Columbus. Deposits are being made in Toledo, Dayton and Cincinnati, with withdrawals in Cleveland.",
+ why:"Cash goes in at branches in three other cities and comes out at a fourth within a day, far from where the customer lives or works. That is a funnel account. Escalate for SAR consideration."});
+spend(c,20,15,200);for(let d=6;d<90;d+=30)tx(c,d,"p2p_in",ri(800,1400),"Client: "+nm());
+for(let i=0;i<10;i++){const d=12+i*7;tx(c,d,"cash_in",ri(20,65)*100,"Self","US",BR[2+i%3]);tx(c,d+1,"cash_out",ri(18,60)*100,"Self","US",BR[5])}
+c.fact=()=>"Ten cash deposits totalling "+money(sumT("CU-40260",t=>t.type==="cash_in"))+" were made in Toledo, Dayton and Cincinnati; cash withdrawals of "+money(sumT("CU-40260",t=>t.type==="cash_out"))+" followed in Cleveland, each within one day.";
+
+c=mk({nm:"Walter Brenner",seg:"Individual",occ:"Retired (no pension recorded)",risk:"Low",opened:"2008",exp:2500,purpose:"Personal savings",bad:true,typ:"Dormant account reactivation",ans:"sar",alt:["investigate"],
+ notes:"No activity on the account since 2025. The remitter and the three beneficiaries are new and are not linked to the customer in any record.",
+ why:"A long-dormant account suddenly receives $48,000 from an unknown company and sends almost all of it to three new beneficiaries within four days. There is no explanation and no link to the customer. Escalate for SAR consideration."});
+tx(c,64,"wire_in",48000,"Vantor Holdings LLC");[[65,15800,"Benefit Rx Group"],[66,15900,"K. Ivers"],[68,15700,"Northpoint Ventures"]].forEach(([d,a,k])=>tx(c,d,"wire_out",a,k));
+c.fact=()=>"After no activity from Aug 1, a $48,000 wire from Vantor Holdings arrived on Oct 4; $47,400 left in three wires to new beneficiaries by Oct 8.";
+
+c=mk({nm:"Meridale Textiles Inc",seg:"Business",occ:"Fabric wholesaler to clothing retailers",risk:"Medium",opened:"2016",exp:150000,purpose:"Sales receipts, payroll, fabric suppliers",bad:true,typ:"Trade-based / payments inconsistent with business",ans:"sar",alt:["investigate"],
+ notes:"KYC: buys fabric from two domestic mills; no import activity declared. Wire memos to Zentra reference ‘electronic components’.",
+ why:"A fabric wholesaler with no declared imports sends round $50,000 wires to an electronics trader in a high-risk jurisdiction for goods it does not deal in. Payments inconsistent with the business are a trade-based laundering indicator. Escalate for SAR consideration."});
+for(let d=1;d<90;d+=5)tx(c,d,"wire_in",ri(15000,30000),pick(["Brightline Apparel","Corso Clothing","Ellery & Moss","Northfield Uniforms"]));
+for(let d=4;d<90;d+=14)tx(c,d,"ach_out",ri(26000,30000),"Payroll: ADP");for(let d=2;d<90;d+=10)tx(c,d,"wire_out",ri(18000,26000),pick(["Carolina Mills","Granite State Fabrics"]));
+[12,34,55,77].forEach(d=>tx(c,d,"wire_out",50000,"Zentra Electronics Trading","Corvania"));
+c.fact=()=>"Four wires of exactly $50,000 were sent to Zentra Electronics Trading in Corvania with memos citing electronic components, goods outside the customer’s declared fabric business.";
+
+c=mk({nm:"Polished Nail Studio",seg:"Business",occ:"Six-chair nail salon",risk:"Medium",opened:"2021",exp:18000,purpose:"Salon receipts and expenses",bad:true,typ:"Commingling / cash inconsistent with profile",ans:"investigate",alt:["sar"],
+ notes:"KYC states about 70% of revenue is card payments. Observed card settlements are small compared with cash.",
+ why:"Cash deposits are close to three times the stated monthly revenue and contradict the KYC (mostly card). That suggests other funds may be mixed into the business. The rule with default settings misses it, so it is a lesson in tuning. Investigate further (request financials, a site visit, RFI); escalate if unexplained."});
+for(let d=0;d<90;d++)if(d%7!==0)tx(c,d,"cash_in",ri(1200,2000),"Self");for(let d=0;d<90;d+=3)tx(c,d,"ach_in",ri(500,800),"Card settlement: Paylane");
+for(let d=5;d<90;d+=30){tx(c,d,"ach_out",3800,"Plaza Retail LLC (rent)");tx(c,d+10,"ach_out",ri(2000,3000),"Beauty supply")}
+c.fact=()=>"Cash deposits averaged "+money(sumT("CU-40299",t=>t.type==="cash_in")/3)+" a month against stated monthly revenue of $18,000, of which the KYC says about 70% is card.";
+
+/* background population (no alerts at default settings) */
+const segs=[["Software engineer","Coastal Tech Inc"],["Teacher","Franklin City Schools"],["Accountant","Barlow CPA"],["Electrician","Volt Services"],["Nurse practitioner","OhioHealth Clinic"],["Warehouse supervisor","Rapid Freight"],["Graphic designer","Studio North"],["Police officer","City of Columbus"]];
+for(let i=0;i<22;i++){const s=pick(segs);const k=mk({nm:nm(),seg:"Individual",occ:s[0]+", employed",risk:"Low",opened:String(2008+ri(0,17)),purpose:"Salary and household"});
+ salary(k,ri(18,45)*100,s[1]);spend(k,ri(25,55),8,240);atm(k,ri(2,6));bills(k,ri(9,22)*100);if(R()<.4)for(let j=0;j<3;j++)tx(k,ri(0,89),"p2p_out",ri(20,300),nm());if(R()<.3)tx(k,ri(0,89),"p2p_in",ri(50,400),nm());}
+C.forEach(k=>{if(!k.exp){const inn=sumT(k.id,isIn)/3;k.exp=Math.max(2000,Math.round(inn*(1.1+R()*.5)/500)*500)}});
+const byC={};T.sort((a,b)=>a.day-b.day);T.forEach(t=>(byC[t.c]=byC[t.c]||[]).push(t));
+const CM={};C.forEach(k=>CM[k.id]=k);
+
+/* ---------- rules ---------- */
+const hsh=s=>{let h=7;for(const ch of s)h=(h*31+ch.charCodeAt(0))%9973;return h};
+const win=(a,d)=>{let best=[],j=0;for(let i=0;i<a.length;i++){while(a[i].day-a[j].day>d-1)j++;if(i-j+1>best.length)best=a.slice(j,i+1)}return best};
+const RULES=[
+{k:"cash",n:"High cash activity",d:"A single cash deposit or withdrawal at or above the threshold.",ps:[["amt","Threshold",2000,20000,500,10000,"$"]],
+ run(ts,p){const h=ts.filter(t=>t.type.indexOf("cash")===0&&t.amt>=p.amt);return h.length?{ids:h,why:h.length+" cash transaction"+(h.length>1?"s":"")+" at or above "+money(p.amt)}:null}},
+{k:"struct",n:"Structuring",d:"Repeated cash deposits just below $10,000 within a rolling window.",ps:[["lo","Lower bound",2000,9500,250,8000,"$"],["n","Minimum count",2,6,1,3,""],["d","Window (days)",2,30,1,7,""]],
+ run(ts,p){const w=win(ts.filter(t=>t.type==="cash_in"&&t.amt>=p.lo&&t.amt<10000),p.d);return w.length>=p.n?{ids:w,why:w.length+" cash deposits from "+money(p.lo)+" to $9,999 within "+p.d+" days"}:null}},
+{k:"rapid",n:"Rapid movement of funds",d:"A large credit followed by debits of most of that amount within a few days.",ps:[["amt","Minimum credit",5000,100000,5000,20000,"$"],["pct","Moved out (%)",50,100,5,80,"%"],["d","Within (days)",1,10,1,3,""]],
+ run(ts,p){const ids=[];let n=0;ts.forEach(t=>{if(!isIn(t)||t.amt<p.amt)return;const o=ts.filter(x=>!isIn(x)&&x.day>=t.day&&x.day<=t.day+p.d);const s=o.reduce((a,x)=>a+x.amt,0);if(s>=t.amt*p.pct/100){n++;ids.push(t,...o)}});return n?{ids,why:n+" credit"+(n>1?"s":"")+" of "+money(p.amt)+"+ with "+p.pct+"%+ moved out within "+p.d+" days"}:null}},
+{k:"geo",n:"Unusual international transfers",d:"Total value to or from the institution’s high-risk jurisdiction list.",ps:[["amt","Total threshold",1000,50000,1000,5000,"$"]],
+ run(ts,p){const h=ts.filter(t=>HR.includes(t.ctry));const s=h.reduce((a,t)=>a+t.amt,0);return s>=p.amt?{ids:h,why:money(s)+" with high-risk jurisdictions ("+[...new Set(h.map(t=>t.ctry))].join(", ")+")"}:null}},
+{k:"third",n:"Multiple third-party deposits",d:"Many distinct senders or depositors within a rolling window.",ps:[["n","Distinct senders",4,20,1,10,""],["d","Window (days)",7,60,1,30,""]],
+ run(ts,p){const a=ts.filter(t=>isIn(t)&&t.type!=="ach_in"&&t.cp&&t.cp!=="Self");let best=[],j=0;for(let i=0;i<a.length;i++){while(a[i].day-a[j].day>p.d-1)j++;const w=a.slice(j,i+1);if(new Set(w.map(t=>t.cp)).size>new Set(best.map(t=>t.cp)).size)best=w}const u=new Set(best.map(t=>t.cp)).size;return u>=p.n?{ids:best,why:u+" distinct senders within "+p.d+" days"}:null}},
+{k:"dorm",n:"Dormant account activity",d:"No activity for the idle period, then value at or above the threshold.",ps:[["idle","Idle days",30,80,1,60,""],["amt","Value after",5000,50000,1000,10000,"$"]],
+ run(ts,p){if(!ts.length||ts[0].day<p.idle)return null;const s=ts.reduce((a,t)=>a+t.amt,0);return s>=p.amt?{ids:ts,why:"Inactive for "+ts[0].day+"+ days, then "+money(s)+" in combined credits and debits"}:null}},
+{k:"prof",n:"Activity vs expected profile",d:"Average monthly credits compared with expected monthly activity in KYC.",ps:[["x","Multiple of expected",1.5,6,.1,3,"x"]],
+ run(ts,p,c){const h=ts.filter(isIn);const m=h.reduce((a,t)=>a+t.amt,0)/3;const r=m/c.exp;return r>=p.x?{ids:h,why:"Average monthly credits "+money(m)+" = "+r.toFixed(1)+"x expected "+money(c.exp)}:null}}
+];
+const DEF={};RULES.forEach(r=>{DEF[r.k]={on:true,p:{}};r.ps.forEach(q=>DEF[r.k].p[q[0]]=q[5])});
+const PRESETS={Default:DEF,"Wide net":{struct:{p:{lo:3000,n:3,d:14}},prof:{p:{x:2.2}},cash:{p:{amt:8000}},third:{p:{n:8}}},Lean:{struct:{p:{lo:9000,n:4,d:7}},prof:{p:{x:4}},third:{p:{n:14}},rapid:{p:{amt:40000}},geo:{p:{amt:20000}}}};
+const clone=o=>JSON.parse(JSON.stringify(o));
+let CFG=clone(DEF);if(P.cfg)RULES.forEach(r=>{if(P.cfg[r.k])CFG[r.k]=Object.assign(clone(DEF[r.k]),P.cfg[r.k])});
+let RES=[];
+function compute(){RES=[];C.forEach(k=>{const hits=[];RULES.forEach(r=>{if(!CFG[r.k].on)return;const h=r.run(byC[k.id]||[],CFG[r.k].p,k);if(h)hits.push({r,h})});if(hits.length)RES.push({c:k,hits})});RES.sort((a,b)=>hsh(a.c.nm)-hsh(b.c.nm))}
+compute();
+const scripted=C.filter(k=>k.fact);
+const alertId=k=>"TM-2026-"+(11000+C.indexOf(k)*3);
+
+/* ---------- navigation ---------- */
+const IC={home:'<path d="M4 11l8-7 8 7v9h-5v-6H9v6H4z"/>',learn:'<path d="M4 5h7a2 2 0 012 2v12a2 2 0 00-2-2H4zM20 5h-7a2 2 0 00-2 2v12a2 2 0 012-2h7z"/>',lab:'<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',cases:'<rect x="3" y="6" width="18" height="14" rx="1"/><path d="M9 6V4h6v2M3 12h18"/>',tests:'<path d="M9 4h6v3H9zM6 6h12v15H6z"/><path d="M9 12l2 2 4-4"/>',ref:'<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>'};
+const VIEWS=[["home","Home","Home"],["learn","Learn","Learn"],["lab","Rules lab","Rules"],["cases","Cases","Cases"],["tests","Assessments","Tests"],["ref","Reference","Ref"]];
+$("#navs").innerHTML=VIEWS.map(v=>`<button class="nav" data-v="${v[0]}"><svg viewBox="0 0 24 24">${IC[v[0]]}</svg>${v[1]}</button>`).join("");
+$("#tabs").innerHTML=VIEWS.map(v=>`<button class="tab" data-v="${v[0]}"><svg viewBox="0 0 24 24">${IC[v[0]]}</svg>${v[2]}</button>`).join("");
+document.addEventListener("click",e=>{const b=e.target.closest("[data-v]");if(b){location.hash=b.dataset.v;}});
+let cur="";
+function route(){const h=(location.hash||"#home").slice(1);const v=VIEWS.some(x=>x[0]===h)?h:"home";cur=v;
+ document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));
+ document.querySelectorAll(".nav,.tab").forEach(b=>b.dataset.v===v?b.setAttribute("aria-current","page"):b.removeAttribute("aria-current"));
+ ({home:home,learn:learn,lab:lab,cases:cases,tests:tests,ref:ref})[v]();$("#main").scrollTop=0}
+window.addEventListener("hashchange",route);
+
+/* ---------- multiple choice widget ---------- */
+function mcHTML(q,id,chosen,opts){const L="ABCD";const done=chosen!=null;
+ return `<div class="mc" data-mc="${id}"><div class="q">${esc(q.q)}</div><div class="opts">${q.o.map((o,i)=>{let c="";if(done){if(i===q.a)c="right";else if(i===chosen)c=(q.alt&&q.alt.includes(i))?"part":"wrong"}return `<button class="opt ${c}" data-i="${i}" ${done?"disabled":""}><span class="k">${L[i]}</span><span>${esc(o)}</span></button>`}).join("")}</div>${done&&q.e?`<div class="exp"><b class="${chosen===q.a?"":"no"}">${chosen===q.a?"Correct.":(q.alt&&q.alt.includes(chosen)?"Partly right.":"Not quite.")}</b> ${esc(q.e)}</div>`:""}</div>`}
+
+/* ---------- HOME ---------- */
+function home(){const done=LESSONS.filter(l=>P.done[l.id]).length;const nx=LESSONS.find(l=>!P.done[l.id]);
+ const cw=Object.keys(P.cases).length;const cs=Object.values(P.cases);const acc=cs.length?Math.round(cs.reduce((a,x)=>a+x.score,0)/(cs.length*3)*100):null;
+ const wk=P.quiz.final;const disp={close:0,investigate:0,sar:0};cs.forEach(x=>disp[x.disp]++);
+ const st=[["Transactions",T.length.toLocaleString(),"processed, Aug to Oct","home"],["Rules",RULES.filter(r=>CFG[r.k].on).length,"scenarios active","lab"],["Alerts",RES.reduce((a,x)=>a+x.hits.length,0),"across "+RES.length+" customers","lab",1],["Review",cw+" / "+RES.length,"cases worked","cases"],["Closed",disp.close,"no further action","cases"],["Escalated",disp.investigate+disp.sar,disp.sar+" for SAR consideration","cases",1]];
+ const icons=['<path d="M4 7h16M4 12h16M4 17h10"/>','<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>','<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>','<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>','<path d="M5 12l4 4 10-10"/>','<path d="M12 19V5M6 11l6-6 6 6"/>'];
+ $("#v-home").innerHTML=`<div class="head"><div><h1>Transaction monitoring, from alert to decision</h1><p>Learn the concepts, tune real scenarios, work practice cases and test yourself with multiple-choice assessments.</p></div>
+ <div class="row">${nx?`<button class="btn" id="goNext">Continue: ${esc(nx.t)}</button>`:`<button class="btn" data-v="tests">Take the final assessment</button>`}</div></div>
+ <div class="panel"><h3>The monitoring lifecycle in this lab</h3><div class="life">${st.map((s,i)=>`<button class="stn ${s[4]?"hot":""}" data-v="${s[3]}" style="border:0;background:none"><div class="dot"><svg viewBox="0 0 24 24">${icons[i]}</svg></div><b>${s[1]}</b><span>${s[0]}: ${s[2]}</span></button>`).join("")}</div><p class="sample" style="margin-top:14px">All customers, accounts and jurisdictions (Corvania, Ostravia, Belmora) in the lab are fictional.</p></div>
+ <h2 style="margin:32px 0 14px">Curriculum</h2>
+ <div class="days">${MODS.map(d=>{const ls=LESSONS.filter(l=>l.mod===d.n);const k=ls.filter(l=>P.done[l.id]).length;return `<button class="day" data-day="${d.n}"><span class="lbl"><span>Module ${d.n}</span><span>${k}/${ls.length}</span></span><h3>${esc(d.t)}</h3><span class="lbl">${esc(d.d)}</span><span class="ticks">${ls.map(l=>`<i class="${P.done[l.id]?"y":""}"></i>`).join("")}</span></button>`}).join("")}</div>
+ <div class="grid3" style="margin-top:24px">
+ <div class="panel"><div class="lbl">Lessons complete</div><div class="big">${done} / ${LESSONS.length}</div></div>
+ <div class="panel"><div class="lbl">Case review accuracy</div><div class="big">${acc==null?"–":acc+"%"}</div><div class="lbl">${cw} case${cw===1?"":"s"} assessed</div></div>
+ <div class="panel"><div class="lbl">Final assessment best</div><div class="big">${wk?wk.best+"%":"–"}</div><div class="lbl">${wk?(wk.best>=80?"Passed (80% required)":"Not yet passed: 80% required"):"Not attempted"}</div></div></div>`;
+ const g=$("#goNext");if(g)g.onclick=()=>{LSEL=nx.id;location.hash="learn"};
+ document.querySelectorAll(".day").forEach(b=>b.onclick=()=>{LSEL=LESSONS.find(l=>l.mod==b.dataset.day).id;location.hash="learn"});}
+
+/* ---------- LEARN ---------- */
+let LSEL=(LESSONS.find(l=>!P.done[l.id])||LESSONS[0]).id;
+function learn(){const l=LESSONS.find(x=>x.id===LSEL);const qs=QB.filter(q=>q.l===l.id);const ix=LESSONS.indexOf(l);const ml=LESSONS.filter(x=>x.mod===l.mod);
+ $("#v-learn").innerHTML=`<div class="head"><div><h1>Learn</h1></div></div>
+ <div class="learn"><nav class="toc" aria-label="Lessons">${MODS.map(d=>`<h4>Module ${d.n}: ${esc(d.t)}</h4>`+LESSONS.filter(x=>x.mod===d.n).map((x,j)=>`<button data-l="${x.id}" aria-current="${x.id===l.id}"><span class="id">${d.n}.${j+1}</span><span>${esc(x.t)}</span>${P.done[x.id]?'<span class="tk">✓</span>':""}</button>`).join("")).join("")}</nav>
+ <article class="lesson"><div class="row"><span class="chip">Module ${l.mod}: ${esc(MODS[l.mod-1].t)}</span><span class="chip">Lesson ${ml.indexOf(l)+1} of ${ml.length}</span>${P.done[l.id]?'<span class="chip ok">Complete</span>':""}</div>
+ <h2>${esc(l.t)}</h2>
+ <ol class="points">${l.p.map(x=>`<li><span>${esc(x)}</span></li>`).join("")}</ol>
+ <div class="stack" style="margin-top:20px">${l.ex?`<div class="note"><b>Worked example</b>${esc(l.ex)}</div>`:""}${l.off?`<div class="note off"><b>Official update</b>${esc(l.off)}</div>`:""}</div>
+ <h3 style="margin:32px 0 12px">Quick check</h3><div class="stack" id="qc">${qs.map(q=>mcHTML(q,"s"+q.i,P.sess[q.i])).join("")}</div>
+ <div class="row" style="margin-top:24px;justify-content:space-between"><button class="btn ghost" id="prev" ${ix?"":"disabled"}>Previous</button>
+ <div class="row"><button class="btn ${P.done[l.id]?"ghost":""}" id="mark">${P.done[l.id]?"Mark as not complete":"Mark lesson complete"}</button><button class="btn ghost" id="next" ${ix<LESSONS.length-1?"":"disabled"}>Next</button></div></div></article></div>`;
+ const v=$("#v-learn");
+ v.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{LSEL=b.dataset.l;learn();$("#main").scrollTop=0});
+ $("#qc").onclick=e=>{const o=e.target.closest(".opt");if(!o||o.disabled)return;const m=o.closest("[data-mc]");const qi=+m.dataset.mc.slice(1);P.sess[qi]=+o.dataset.i;if(+o.dataset.i!==QB[qi].a)P.missed[qi]=1;save();m.outerHTML=mcHTML(QB[qi],"s"+qi,P.sess[qi])};
+ $("#mark").onclick=()=>{P.done[l.id]=!P.done[l.id];save();learn()};
+ $("#prev").onclick=()=>{LSEL=LESSONS[ix-1].id;learn();$("#main").scrollTop=0};
+ $("#next").onclick=()=>{LSEL=LESSONS[ix+1].id;learn();$("#main").scrollTop=0};}
+
+/* ---------- RULES LAB ---------- */
+function fmtP(q,v){return q[6]==="$"?money(v):q[6]==="%"?v+"%":q[6]==="x"?(+v).toFixed(1)+"x":v}
+function lab(){const v=$("#v-lab");
+ v.innerHTML=`<div class="head"><div><h1>Rules lab</h1><p>Seven scenarios run over ${C.length} fictional customers and ${T.length.toLocaleString()} transactions. Move a threshold and watch alerts, false positives and missed cases change. This is the trade-off behind every tuning decision.</p></div>
+ <div class="row"><span class="lbl">Presets</span><div class="seg" id="pre">${Object.keys(PRESETS).map(k=>`<button data-p="${k}">${k}</button>`).join("")}</div></div></div>
+ <div class="lab"><div class="rules" id="rules">${RULES.map(r=>`<div class="rule ${CFG[r.k].on?"":"offr"}" data-r="${r.k}"><header><div><h3>${r.n}</h3><p>${esc(r.d)}</p></div><input type="checkbox" class="sw" aria-label="Turn ${r.n} on or off" ${CFG[r.k].on?"checked":""}></header>${r.ps.map(q=>`<label class="prm"><span>${q[1]}</span><output id="o-${r.k}-${q[0]}">${fmtP(q,CFG[r.k].p[q[0]])}</output><input type="range" id="p-${r.k}-${q[0]}" data-k="${q[0]}" min="${q[2]}" max="${q[3]}" step="${q[4]}" value="${CFG[r.k].p[q[0]]}"></label>`).join("")}</div>`).join("")}</div>
+ <aside class="sticky stack" id="res"></aside></div>`;
+ const rs=$("#rules");
+ rs.addEventListener("input",e=>{const el=e.target;const card=el.closest("[data-r]");const k=card.dataset.r;const r=RULES.find(x=>x.k===k);
+  if(el.type==="checkbox"){CFG[k].on=el.checked;card.classList.toggle("offr",!el.checked)}else{CFG[k].p[el.dataset.k]=+el.value;$("#o-"+k+"-"+el.dataset.k).textContent=fmtP(r.ps.find(q=>q[0]===el.dataset.k),el.value)}
+  P.cfg=CFG;save();compute();labRes()});
+ $("#pre").onclick=e=>{const b=e.target.closest("[data-p]");if(!b)return;CFG=clone(DEF);const pr=PRESETS[b.dataset.p];Object.keys(pr).forEach(k=>{if(pr[k].p)Object.assign(CFG[k].p,pr[k].p)});P.cfg=CFG;save();compute();lab()};
+ labRes()}
+let REVEAL=false;
+function labRes(){const bad=C.filter(k=>k.bad);const al=RES.map(x=>x.c);const tp=al.filter(k=>k.bad).length,fp=al.length-tp;const miss=bad.filter(k=>!al.includes(k));const tot=RES.reduce((a,x)=>a+x.hits.length,0);
+ const per=RULES.filter(r=>CFG[r.k].on).map(r=>{const h=RES.filter(x=>x.hits.some(y=>y.r===r));return {r,n:h.length,tp:h.filter(x=>x.c.bad).length}});const mx=Math.max(1,...per.map(p=>p.n));
+ $("#res").innerHTML=`<div class="kpis"><div><div class="lbl">Alerts generated</div><div class="big">${tot}</div></div><div><div class="lbl">Customers alerted</div><div class="big">${al.length}</div></div>
+ <div><div class="lbl">Alert precision</div><div class="big">${al.length?Math.round(tp/al.length*100):0}%</div><div class="lbl">${tp} of ${al.length} customers suspicious</div></div>
+ <div><div class="lbl">Detection rate</div><div class="big" style="color:${miss.length?"var(--acc)":"inherit"}">${Math.round(tp/bad.length*100)}%</div><div class="lbl">${tp} of ${bad.length} suspicious customers caught</div></div></div>
+ <div class="panel"><h3>Alerts by scenario</h3><div class="bars">${per.map(p=>`<div class="bar"><span>${p.r.n}</span><span class="num">${p.n}</span><span class="track" style="width:${p.n/mx*100}%"><i class="tp" style="width:${p.n?p.tp/p.n*100:0}%"></i><i class="fp" style="width:${p.n?(p.n-p.tp)/p.n*100:0}%"></i></span></div>`).join("")||'<p class="lbl">All scenarios are off.</p>'}</div>
+ <div class="legend"><span><i style="background:var(--acc)"></i>Suspicious</span><span><i style="background:color-mix(in srgb,var(--mute) 55%,transparent)"></i>Explained (false positive)</span></div></div>
+ <div class="panel"><h3>${miss.length?miss.length+" suspicious customer"+(miss.length>1?"s":"")+" not alerted":"No suspicious customers missed"}</h3>
+ <p class="lbl" style="margin-bottom:10px">${miss.length?"Gaps like these are why institutions test below the line before raising thresholds.":"Check what this cost in false positives above."}</p>
+ ${miss.length?(REVEAL?`<ul style="margin:0;padding-left:18px">${miss.map(k=>`<li><b>${esc(k.nm)}</b>: ${esc(k.typ)}. ${esc(hint(k))}</li>`).join("")}</ul>`:`<button class="btn ghost sm" id="rv">Show who was missed</button>`):""}</div>`;
+ const b=$("#rv");if(b)b.onclick=()=>{REVEAL=true;labRes()}}
+function hint(k){return {"Smurfing":"Deposits sit below the structuring lower bound; try lowering it to about $3,000 or rely on the third-party rule.","Commingling / cash inconsistent with profile":"Cash is about 2.8x the stated revenue; a profile multiple near 2.5x would catch it.","Funnel account":"Only the profile rule sees it; branch geography is not monitored by any scenario here.","Structuring":"Check the structuring lower bound, count and window.","Money mule":"Watch the third-party and international rules.","Pass-through / rapid movement":"Watch the rapid movement and international rules.","Dormant account reactivation":"Check the dormant and rapid movement rules.","Trade-based / payments inconsistent with business":"Only the international rule sees it; check its threshold."}[k.typ]||""}
+
+/* ---------- CASES ---------- */
+let CSEL=null,TF="all";
+const TYPS=["Structuring","Smurfing","Pass-through / rapid movement","Money mule","Funnel account","Dormant account reactivation","Trade-based / payments inconsistent with business","Commingling / cash inconsistent with profile","Explained by customer information"];
+function caseQs(k){const h=hsh(k.id);const others=TYPS.filter(t=>t!==k.typ);const pickd=[];for(let i=0;pickd.length<3;i++){const t=others[(h+i*5)%others.length];if(!pickd.includes(t))pickd.push(t)}
+ const o1=[k.typ,...pickd];const rot=h%4;const O1=o1.slice(rot).concat(o1.slice(0,rot));
+ const dl=[["close","No further action: close with documented rationale"],["investigate","Further investigation required (for example RFI, EDD or site visit)"],["sar","Escalate for SAR consideration"]];
+ const as=[k.nm+" is laundering criminal proceeds through the account.","The activity proves the customer is working for an organised crime group.","The customer is obviously hiding something and should be exited immediately.","The customer appears dishonest, so the funds are presumably illicit."];
+ const o3=[k.fact(),as[h%4],as[(h+1)%4],as[(h+2)%4]];const r3=(h>>2)%4;const O3=o3.slice(r3).concat(o3.slice(0,r3));
+ return [{q:"After reviewing the profile, notes and transactions, which description best fits this activity?",o:O1,a:O1.indexOf(k.typ),e:k.why},
+ {q:"What is the most appropriate disposition?",o:dl.map(x=>x[1]),a:dl.findIndex(x=>x[0]===k.ans),alt:k.alt.map(a=>dl.findIndex(x=>x[0]===a)),e:"Expected: "+dl.find(x=>x[0]===k.ans)[1]+". "+(k.alt.length?"Also defensible with good documentation: "+k.alt.map(a=>dl.find(x=>x[0]===a)[1].split(":")[0].split(" (")[0]).join(", ")+".":"")},
+ {q:"Which sentence belongs in the investigation narrative?",o:O3,a:O3.indexOf(k.fact()),e:"Narratives state verified facts with figures and dates. The other options present assumptions as conclusions."}]}
+function cases(){const q=RES.filter(x=>x.c.fact);const v=$("#v-cases");
+ if(!CSEL||!q.some(x=>x.c.id===CSEL))CSEL=q.length?q[0].c.id:null;
+ const nd=q.filter(x=>P.cases[x.c.id]).length;
+ v.innerHTML=`<div class="head"><div><h1>Case reviews</h1><p>Practice alerts with full customer files. The queue is driven by your Rules lab settings: tune the rules and the alerts here change.</p></div><div class="row"><span class="chip">${nd} of ${q.length} reviewed</span><button class="btn ghost sm" id="rs">Reset case answers</button></div></div>
+ ${q.length?`<div class="cases"><div class="queue" role="list">${q.map(x=>{const r=P.cases[x.c.id];return `<button class="qi" data-c="${x.c.id}" aria-current="${x.c.id===CSEL}"><b>${esc(x.c.nm)}</b><span class="nw">${r?`<span class="chip ${r.score>=2.5?"ok":r.score>=1.5?"warn":"alert"}">${r.score}/3</span>`:`<span class="chip">${x.hits.length} scenario${x.hits.length>1?"s":""}</span>`}</span><small>${alertId(x.c)} · ${x.hits.map(h=>h.r.n).join(", ")}</small></button>`}).join("")}</div><div id="wb" class="stack"></div></div>`:`<div class="empty">No practice alerts with the current rules. Turn some scenarios back on in the Rules lab.</div>`}`;
+ $("#rs").onclick=()=>{P.cases={};save();cases()};
+ v.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{CSEL=b.dataset.c;TF="all";cases();if(innerWidth<1100)$("#wb").scrollIntoView()});
+ if(CSEL)bench()}
+function bench(){const x=RES.find(y=>y.c.id===CSEL);const k=x.c;const ts=byC[k.id];const hitIds=new Set();x.hits.forEach(h=>h.h.ids.forEach(t=>hitIds.add(t.id)));
+ const inn=ts.filter(isIn).reduce((a,t)=>a+t.amt,0),out=ts.filter(t=>!isIn(t)).reduce((a,t)=>a+t.amt,0);
+ const cps={};ts.forEach(t=>{if(!t.cp||t.cp==="ATM")return;const o=cps[t.cp]=cps[t.cp]||{n:0,in:0,out:0,ctry:t.ctry};o.n++;isIn(t)?o.in+=t.amt:o.out+=t.amt});
+ const top=Object.entries(cps).sort((a,b)=>b[1].in+b[1].out-(a[1].in+a[1].out)).slice(0,8);
+ const shown=ts.filter(t=>TF==="all"||TF==="hit"&&hitIds.has(t.id)||TF==="in"&&isIn(t)||TF==="out"&&!isIn(t));
+ const rec=P.cases[k.id];const qs=caseQs(k);
+ $("#wb").innerHTML=`<div class="panel"><div class="row" style="justify-content:space-between"><div><div class="lbl">${alertId(k)} · Review period Aug 1 to Oct 29, 2026</div><h2 style="margin-top:6px">${esc(k.nm)}</h2></div><div class="row">${x.hits.map(h=>`<span class="chip alert">${h.r.n}</span>`).join("")}</div></div>
+ <div class="grid2" style="margin-top:18px"><div><h3 style="margin-bottom:10px">Alert details</h3><dl class="kv">${x.hits.map(h=>`<dt>${h.r.n}</dt><dd>${esc(h.h.why)}</dd>`).join("")}<dt>Transactions</dt><dd>${ts.length} in period, ${hitIds.size} triggering</dd><dt>Aggregate value</dt><dd class="nw">${money(inn)} in · ${money(out)} out</dd></dl></div>
+ <div><h3 style="margin-bottom:10px">KYC profile</h3><dl class="kv"><dt>Customer</dt><dd>${k.id} · ${k.seg}</dd><dt>Occupation / business</dt><dd>${esc(k.occ)}</dd><dt>Account purpose</dt><dd>${esc(k.purpose)}</dd><dt>Expected monthly</dt><dd class="nw">${money(k.exp)} in credits</dd><dt>Risk rating</dt><dd>${k.risk} · customer since ${k.opened}</dd><dt>Home branch</dt><dd>${esc(k.br)}</dd></dl></div></div>
+ ${k.notes?`<div class="note" style="margin-top:18px"><b>File notes and supporting information</b>${esc(k.notes)}</div>`:""}</div>
+ <div class="panel"><h3>Daily activity</h3><div class="fig" id="fig"><svg></svg></div><div class="legend"><span><i style="background:var(--pri)"></i>Credits</span><span><i style="background:var(--acc)"></i>Debits</span></div></div>
+ <div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h3>Transactions</h3><div class="seg" id="tf">${[["all","All"],["hit","Triggering"],["in","Credits"],["out","Debits"]].map(f=>`<button data-f="${f[0]}" aria-pressed="${TF===f[0]}">${f[1]}</button>`).join("")}</div></div>
+ <div class="tall scroll"><table><thead><tr><th>Date</th><th>Type</th><th class="num">Amount</th><th>Counterparty</th><th>Country</th><th>Branch</th></tr></thead><tbody>${shown.map(t=>`<tr class="${hitIds.has(t.id)?"hit":""}"><td class="nw">${dstr(t.day)}</td><td class="nw">${TYPES[t.type]}</td><td class="num">${isIn(t)?"":"−"}${money(t.amt)}</td><td>${esc(t.cp)}</td><td>${HR.includes(t.ctry)?`<span class="chip alert">${t.ctry}</span>`:t.ctry}</td><td>${esc(t.br)}</td></tr>`).join("")}</tbody></table></div><p class="sample" style="margin-top:8px">Shaded rows triggered the alert. ${shown.length} shown.</p></div>
+ <div class="panel"><h3>Top counterparties</h3><div class="scroll"><table><thead><tr><th>Counterparty</th><th class="num">Count</th><th class="num">Received</th><th class="num">Sent</th><th>Country</th></tr></thead><tbody>${top.map(([n,o])=>`<tr><td>${esc(n)}</td><td class="num">${o.n}</td><td class="num">${o.in?money(o.in):"–"}</td><td class="num">${o.out?money(o.out):"–"}</td><td>${o.ctry}</td></tr>`).join("")}</tbody></table></div></div>
+ <div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:12px"><h3>Assessment</h3>${rec?`<span class="stamp" style="color:${rec.score>=2.5?"var(--ok)":rec.score>=1.5?"var(--warn)":"var(--bad)"}">Scored ${rec.score} / 3</span>`:`<span class="lbl">Three multiple-choice questions</span>`}</div>
+ <div class="stack" id="cq">${qs.map((q,i)=>mcHTML(q,"c"+i,rec?rec.a[i]:null)).join("")}</div>
+ ${rec?"":`<div class="row" style="margin-top:16px"><button class="btn" id="sub" ${(CANS[k.id]||[]).filter(a=>a!=null).length===3?"":"disabled"}>Submit assessment</button><span class="lbl">Answer all three, then submit to see feedback.</span></div>`}</div>
+ <div class="panel"><h3>Practice narrative (not scored)</h3><p class="lbl" style="margin-bottom:14px">Draft using who, what, when, where, why and how. Facts only; keep assumptions out.</p>
+ <div class="grid2">${[["who","Who","Customer and counterparties"],["what","What","Activity identified, with amounts"],["when","When","Dates and review period"],["where","Where","Branches, channels, jurisdictions"],["why","Why unusual","Compared with profile and history"],["how","How (assessment)","Evidence reviewed and disposition"]].map(f=>`<label class="field"><span>${f[1]}</span><textarea id="n-${f[0]}" placeholder="${f[2]}">${esc((NAR[k.id]||{})[f[0]]||"")}</textarea></label>`).join("")}</div>
+ <h3 style="margin:18px 0 8px">Draft</h3><div class="draft" id="draft"></div><div class="row" style="margin-top:12px"><button class="btn ghost sm" id="cp">Copy draft</button><span class="lbl" id="cpm" role="status"></span></div></div>`;
+ drawFig(ts);
+ $("#tf").onclick=e=>{const b=e.target.closest("[data-f]");if(b){TF=b.dataset.f;bench()}};
+ if(!rec){$("#cq").onclick=e=>{const o=e.target.closest(".opt");if(!o)return;const i=+o.closest("[data-mc]").dataset.mc.slice(1);const a=CANS[k.id]=CANS[k.id]||[null,null,null];a[i]=+o.dataset.i;
+  o.closest(".opts").querySelectorAll(".opt").forEach(b=>b.style.borderColor=b===o?"var(--pri)":"");o.closest(".opts").querySelectorAll(".k").forEach(b=>{b.style.background="";b.style.color=""});o.querySelector(".k").style.background="var(--prib)";o.querySelector(".k").style.color="#fff";
+  $("#sub").disabled=a.filter(z=>z!=null).length<3};
+  $("#cq").querySelectorAll(".opt").forEach(b=>{b.disabled=false;b.className="opt"});(CANS[k.id]||[]).forEach((a,i)=>{if(a==null)return;const o=$("#cq").querySelectorAll("[data-mc]")[i].querySelectorAll(".opt")[a];o.style.borderColor="var(--pri)";o.querySelector(".k").style.background="var(--prib)";o.querySelector(".k").style.color="#fff"});
+  $("#cq").querySelectorAll(".exp").forEach(e=>e.remove());
+  $("#sub").onclick=()=>{const a=CANS[k.id];let s=0;qs.forEach((q,i)=>{if(a[i]===q.a)s++;else if(q.alt&&q.alt.includes(a[i]))s+=.5});P.cases[k.id]={a,score:s,disp:["close","investigate","sar"][a[1]]};save();cases()}}
+ const upd=()=>{const n=NAR[k.id]=NAR[k.id]||{};["who","what","when","where","why","how"].forEach(f=>n[f]=$("#n-"+f).value.trim());
+  const parts=[n.who&&("Subject: "+n.who),n.what&&("Activity: "+n.what),n.when&&("Timing: "+n.when),n.where&&("Location and channels: "+n.where),n.why&&("Why it is unusual: "+n.why),n.how&&("Assessment and disposition: "+n.how)].filter(Boolean);
+  $("#draft").textContent=parts.length?"Alert "+alertId(k)+", review period Aug 1 to Oct 29, 2026.\n\n"+parts.join("\n\n"):"Start typing in the fields above to build your draft.";P.nar=NAR;save()};
+ $("#wb").querySelectorAll("textarea").forEach(t=>t.oninput=upd);upd();
+ $("#cp").onclick=async()=>{try{await navigator.clipboard.writeText($("#draft").textContent);$("#cpm").textContent="Copied."}catch(e){$("#cpm").textContent="Copy blocked here; select the text and copy manually."}}}
+const CANS={};const NAR=P.nar||{};
+let figRO=null;
+function drawFig(ts){const f=$("#fig");const s=f.querySelector("svg");const dIn=new Array(90).fill(0),dOut=new Array(90).fill(0);ts.forEach(t=>isIn(t)?dIn[t.day]+=t.amt:dOut[t.day]+=t.amt);
+ const draw=()=>{const W=f.clientWidth,H=f.clientHeight;if(!W)return;const ml=56,mr=8,mt=10,mb=24;const mx=Math.max(1,...dIn,...dOut);const nice=v=>{const p=Math.pow(10,Math.floor(Math.log10(v)));return Math.ceil(v/p)*p};const top=nice(mx);
+  const y0=mt+(H-mt-mb)/2,hh=(H-mt-mb)/2,bw=(W-ml-mr)/90;const yy=v=>v/top*hh;const kf=v=>v>=1000?"$"+Math.round(v/1000)+"k":"$"+v;
+  let g=`<line x1="${ml}" x2="${W-mr}" y1="${y0}" y2="${y0}" stroke="var(--ink)" stroke-width="1"/>`;
+  [[top,mt],[top/2,y0-hh/2],[top/2,y0+hh/2],[top,y0+hh]].forEach(([v,y],i)=>{g+=`<line x1="${ml}" x2="${W-mr}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-dasharray="2 3"/><text x="${ml-6}" y="${y+4}" text-anchor="end">${i>1?"−":""}${kf(v)}</text>`});
+  for(let d=0;d<90;d++){const x=ml+d*bw+bw*.15,w=Math.max(1,bw*.7);if(dIn[d])g+=`<rect x="${x}" y="${y0-yy(dIn[d])}" width="${w}" height="${yy(dIn[d])}" fill="var(--pri)"/>`;if(dOut[d])g+=`<rect x="${x}" y="${y0}" width="${w}" height="${yy(dOut[d])}" fill="var(--acc)"/>`}
+  [0,31,61,89].forEach((d,i)=>{if(W<520&&i===3)return;g+=`<text x="${ml+d*bw}" y="${H-6}" text-anchor="${i===3?"end":"start"}">${dstr(d)}</text>`});s.innerHTML=g};
+ if(figRO)figRO.disconnect();figRO=new ResizeObserver(draw);figRO.observe(f);draw()}
+
+/* ---------- ASSESSMENTS ---------- */
+let QZ=null;
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const FPM=6,FEXTRA=2,FTOTAL=MODS.length*6+2;
+const qname=m=>m==="final"?"Final assessment":m==="missed"?"Missed questions review":"Module "+m+" check";
+function startQuiz(mode){let list;if(mode==="final"){list=[];MODS.forEach(d=>list.push(...shuffle(QB.filter(q=>q.m===d.n)).slice(0,FPM)));list.push(...shuffle(QB.filter(q=>!list.includes(q))).slice(0,FEXTRA));list=shuffle(list)}
+ else if(mode==="missed")list=shuffle(QB.filter(q=>P.missed[q.i]));else list=shuffle(QB.filter(q=>q.m===+mode));
+ QZ={mode,list,i:0,ans:[]};tests()}
+function tests(){const v=$("#v-tests");
+ if(!QZ){const nm=Object.keys(P.missed).length;const fb=P.quiz.final;
+  v.innerHTML=`<div class="head"><div><h1>Assessments</h1><p>All questions are multiple choice, with an explanation after each answer. The final assessment pass mark is 80%.</p></div></div>
+  <div class="panel" style="border-color:var(--pri)"><div class="row" style="justify-content:space-between"><div><h2 style="margin:0 0 6px">Final assessment</h2><p class="lbl">${FTOTAL} questions: six from each module plus two more${fb?" · best "+fb.best+"%, "+fb.n+" attempt"+(fb.n>1?"s":""):""}</p></div><button class="btn" data-q="final">Start assessment</button></div></div>
+  <div class="grid3" style="margin-top:20px">${MODS.map(m=>{const b=P.quiz[m.n];const n=QB.filter(q=>q.m===m.n).length;return `<div class="panel"><div class="lbl">Module ${m.n} · ${n} questions${b?" · best "+b.best+"%":""}</div><h3 style="margin:6px 0 6px">${esc(m.t)}</h3><p class="lbl" style="margin-bottom:14px">${esc(m.d)}</p><button class="btn ghost sm" data-q="${m.n}">Start</button></div>`}).join("")}
+  <div class="panel"><div class="lbl">${nm} question${nm===1?"":"s"} saved</div><h3 style="margin:6px 0 6px">Review missed questions</h3><p class="lbl" style="margin-bottom:14px">Questions you answer wrongly anywhere in the app collect here until you get them right.</p><button class="btn ghost sm" data-q="missed" ${nm?"":"disabled"}>Start review</button></div></div>`;
+  v.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>startQuiz(b.dataset.q));return}
+ const z=QZ;const total=z.list.length;
+ if(z.i>=total){const r=z.ans.filter((a,i)=>a===z.list[i].a).length;const pc=Math.round(r/total*100);const pass=pc>=80;
+  if(z.mode!=="missed"){const o=P.quiz[z.mode]||{best:0,n:0};o.best=Math.max(o.best,pc);o.n++;P.quiz[z.mode]=o;save()}
+  const wrong=z.list.filter((q,i)=>z.ans[i]!==q.a);
+  v.innerHTML=`<div class="head"><div><h1>${qname(z.mode)}: results</h1></div></div>
+  <div class="grid2"><div class="panel"><div class="score">${pc}%</div><p style="margin-top:8px">${r} of ${total} correct</p>${z.mode==="final"?`<p style="margin-top:14px"><span class="stamp" style="color:${pass?"var(--ok)":"var(--bad)"}">${pass?"Pass":"Below 80%: retake"}</span></p>`:""}<div class="row" style="margin-top:20px"><button class="btn" id="again">Try again</button><button class="btn ghost" id="back">All assessments</button></div></div>
+  <div class="panel"><h3>${wrong.length?"Review these":"Nothing to review"}</h3>${wrong.length?`<ol style="margin:0;padding-left:20px">${wrong.map(q=>`<li style="margin-bottom:10px"><b style="font-weight:500">${esc(q.q)}</b><br><span class="lbl">Answer: ${esc(q.o[q.a])}. Revisit: ${esc(lessonOf(q).t)}.</span></li>`).join("")}</ol>`:`<p class="lbl">Every answer was correct.</p>`}</div></div>`;
+  $("#again").onclick=()=>startQuiz(z.mode);$("#back").onclick=()=>{QZ=null;tests()};return}
+ const q=z.list[z.i];const ch=z.ans[z.i];
+ v.innerHTML=`<div class="head"><div><div class="lbl">${qname(z.mode)} · ${esc(MODS[q.m-1].t)}</div><h1 style="margin-top:6px">Question ${z.i+1} of ${total}</h1></div><button class="btn ghost sm" id="quit">Exit</button></div>
+ <div class="meter" style="background:var(--line);height:4px;margin:-12px 0 24px"><i style="width:${z.i/total*100}%;background:var(--pri)"></i></div>
+ <div style="max-width:820px">${mcHTML(q,"z",ch)}<div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn" id="nx" ${ch==null?"disabled":""}>${z.i===total-1?"See results":"Next question"}</button></div></div>`;
+ v.querySelector(".opts").onclick=e=>{const o=e.target.closest(".opt");if(!o||o.disabled)return;const a=+o.dataset.i;z.ans[z.i]=a;if(a!==q.a)P.missed[q.i]=1;else if(z.mode==="missed")delete P.missed[q.i];save();tests()};
+ $("#nx").onclick=()=>{z.i++;tests();$("#main").scrollTop=0};$("#quit").onclick=()=>{QZ=null;tests()}}
+
+/* ---------- REFERENCE ---------- */
+let GQ="";
+function ref(){const v=$("#v-ref");
+ v.innerHTML=`<div class="head"><div><h1>Reference</h1><p>Glossary of core terms and the sources behind this app. Lists such as FATF jurisdictions change, so check the live source before citing one in a case.</p></div></div>
+ <div class="grid2" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start"><div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><h3 style="margin:0">Glossary</h3><input class="search" id="gq" type="search" placeholder="Search terms" value="${esc(GQ)}" aria-label="Search glossary"></div><dl class="gl" id="gl"></dl></div>
+ <div class="panel"><h3>Sources</h3><ul style="margin:0;padding-left:18px;font-size:15px">${SOURCES.map(s=>`<li style="margin-bottom:10px">${s[1].indexOf("http")===0?`<a href="${s[1]}" target="_blank" rel="noopener">${esc(s[0])}</a>`:`${esc(s[0])}<br><span class="lbl">${esc(s[1])}</span>`}</li>`).join("")}</ul>
+ <h3 style="margin:24px 0 10px">Your data</h3><p class="lbl" style="margin-bottom:12px">Progress is saved in this browser only.</p><button class="btn ghost sm" id="wipe">Reset all progress</button><span class="lbl" id="wm" style="margin-left:10px"></span></div></div>`;
+ const fill=()=>{const g=GQ.toLowerCase();const r=GLOSS.filter(x=>(x[0]+x[1]).toLowerCase().includes(g));$("#gl").innerHTML=r.length?r.map(x=>`<dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd>`).join(""):`<dt>No match</dt><dd>Try another term.</dd>`};fill();
+ $("#gq").oninput=e=>{GQ=e.target.value;fill()};
+ let armed=false;$("#wipe").onclick=()=>{if(!armed){armed=true;$("#wm").textContent="Click again to confirm.";return}P={done:{},cases:{},quiz:{},sess:{},cfg:null,missed:{}};save();CFG=clone(DEF);compute();$("#wm").textContent="Progress reset."}}
+
+route();
+}
+
+</script>
+</body>
+</html>
