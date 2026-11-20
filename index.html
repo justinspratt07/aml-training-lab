@@ -175,6 +175,15 @@ a{color:var(--pri)}
 .take li:before{content:"\2713";position:absolute;left:2px;top:7px;color:var(--pri);font-weight:600}
 .lesson .gl{grid-template-columns:180px minmax(0,1fr)}
 @media(max-width:700px){.lesson .gl{grid-template-columns:minmax(0,1fr)}}
+.refgrid{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:20px;align-items:start}
+.fchip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:0 12px;min-height:36px;font-size:14px;color:var(--mute)}
+.fchip:hover{border-color:var(--pri)}.fchip[aria-pressed=true]{background:var(--prib);border-color:var(--prib);color:#fff}
+.az{display:flex;flex-wrap:wrap;gap:2px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px 0}
+.az a{flex:none;min-width:30px;height:32px;display:grid;place-items:center;border-radius:4px;text-decoration:none;font-weight:500;font-size:14px}
+.az a:hover{background:var(--soft)}
+.gh{font-family:"IBM Plex Serif",serif;font-size:22px;color:var(--pri);margin:22px 0 4px;padding-bottom:4px;border-bottom:2px solid var(--ink)}
+.gcat{display:block;font-size:12px;font-weight:400;color:var(--mute);margin-top:2px}
+@media(max-width:1100px){.refgrid{grid-template-columns:minmax(0,1fr)}}
 .tabbar{display:none}
 .sample{font-size:13px;color:var(--mute)}
 @media(max-width:1100px){.lab,.cases{grid-template-columns:minmax(0,1fr)}.sticky{position:static}.learn{grid-template-columns:240px minmax(0,1fr)}}
@@ -497,44 +506,169 @@ const QB=[
 {l:"m8b",q:"Which practice is required in OSINT research for a case?",o:["Contacting the subject","Recording searches, dates and results, including nothing found","Creating fake profiles","Keeping no notes"],a:1,e:"Research should be repeatable by another analyst."}
 ];
 
+const GCAT={REG:"Law and regulation",CDD:"Customer due diligence",SAN:"Sanctions and screening",TM:"Monitoring systems",TYP:"Typologies and red flags",INV:"Investigations and reporting",PAY:"Banking and payments"};
 const GLOSS=[
-["Alert","A system notification that a monitoring scenario has been triggered. Not proof of wrongdoing."],
-["Aggregation","Combining a person’s same-day cash transactions to test the CTR threshold."],
-["Below-the-line testing","Sampling activity just under a threshold to see what a scenario would miss."],
-["Beneficial owner","Each individual owning 25% or more of a legal entity, plus one individual with significant control."],
-["BSA","Bank Secrecy Act (1970); 31 U.S.C. Chapter 53, implemented in 31 CFR Chapter X."],
-["BEC","Business email compromise: fraudulent payment instructions sent from a hijacked or spoofed email account."],
-["Case","A grouped investigation of related alerts, usually by customer."],
-["CDD","Customer due diligence: identity, ownership, nature and purpose, risk profile and ongoing monitoring."],
-["CTR","Currency Transaction Report for cash over $10,000 in a business day."],
-["EDD","Enhanced due diligence for higher-risk relationships."],
-["FATF","Financial Action Task Force, the global AML/CFT standard setter."],
-["False positive","An alert that, after review, is explained and not suspicious."],
-["FinCEN","Financial Crimes Enforcement Network, the Treasury bureau that administers the BSA."],
-["Funnel account","An account receiving deposits in one place with funds withdrawn quickly elsewhere."],
-["Grey list","FATF jurisdictions under increased monitoring."],
-["Integration","Laundered funds re-entering the economy looking legitimate."],
-["Layering","Moving funds to obscure their origin."],
-["Money mule","Someone who receives and passes on funds for others, knowingly or not."],
-["OFAC","Office of Foreign Assets Control, which administers US sanctions."],
-["OSINT","Open-source intelligence: research using publicly available information."],
-["Pass-through","High inflow and outflow with little retained in the account."],
-["PEP","Politically exposed person, plus family and close associates."],
-["Placement","Illicit funds first entering the financial system."],
-["Precision","Share of alerts that prove productive."],
-["Predicate offence","The underlying crime that generates illicit proceeds."],
-["RFI","Request for information sent to a customer to resolve gaps."],
-["SAR","Suspicious Activity Report filed with FinCEN."],
-["Scenario","Monitoring logic aimed at one risk pattern."],
-["SDN List","OFAC’s Specially Designated Nationals and Blocked Persons List."],
-["Smurfing","Structuring carried out by several people."],
-["Source of funds","Where a specific amount of money came from."],
-["Source of wealth","How a customer built their overall wealth."],
-["Structuring","Splitting cash to avoid reporting; a crime under 31 U.S.C. § 5324."],
-["TBML","Trade-based money laundering: value moved through misrepresented trade."],
-["Tipping off","Disclosing that a SAR exists or is being considered; prohibited."],
-["50 Percent Rule","OFAC rule treating entities 50%+ owned in aggregate by blocked persons as blocked."],
-["314(a) / 314(b)","PATRIOT Act provisions for law enforcement requests to banks (a) and voluntary sharing between institutions (b)."]
+["314(a) / 314(b)","PATRIOT Act provisions: 314(a) lets FinCEN send banks law enforcement subject lists to search; 314(b) lets registered institutions share information with each other under a safe harbor.","REG"],
+["311 special measures","PATRIOT Act Section 311 lets Treasury designate a foreign jurisdiction, institution or transaction type as a primary money laundering concern and impose restrictions, up to prohibiting correspondent accounts.","REG"],
+["312 due diligence","PATRIOT Act Section 312 requires due diligence programmes for correspondent accounts for foreign financial institutions and private banking accounts for non-US persons.","REG"],
+["326 (CIP)","PATRIOT Act Section 326, the statutory basis for Customer Identification Programs.","REG"],
+["50 Percent Rule","OFAC rule treating any entity owned 50% or more, directly or indirectly and in aggregate, by blocked persons as blocked itself.","SAN"],
+["ACH","Automated Clearing House: a US batch payment network for payroll, bill payments and transfers, settling same day or next day under Nacha rules.","PAY"],
+["Account takeover","A criminal gains control of a genuine customer's account, often changing contact details before moving funds out.","TYP"],
+["Adverse media","Negative news or public information linking a person or entity to financial crime or serious misconduct; also called negative news.","SAN"],
+["Aggregation","Combining a person's cash transactions in one business day to test the $10,000 CTR threshold.","REG"],
+["Alert","A system notification that a monitoring scenario has been triggered. Not proof of wrongdoing.","TM"],
+["Alert ageing","How long an alert has waited for review. Long ageing can delay SAR deadlines and is a common examination finding.","TM"],
+["AML Act of 2020","Law enacted in January 2021 that modernised the BSA, created national AML/CFT priorities, expanded whistleblower protections and included the Corporate Transparency Act.","REG"],
+["AML/CFT program","The internal controls, independent testing, designated officer, training and customer due diligence a covered institution must maintain.","REG"],
+["Annunzio-Wylie Act","1992 law that strengthened BSA sanctions, introduced the SAR concept and added funds transfer recordkeeping authority.","REG"],
+["APP fraud","Authorised push payment fraud: a victim is tricked into sending a payment themselves, for example to a fake supplier or romance scammer.","TYP"],
+["Bearer shares","Shares owned by whoever physically holds the certificate, making ownership hard to trace. A high-risk feature in corporate structures.","CDD"],
+["BEC","Business email compromise: fraudulent payment instructions sent from a hijacked or spoofed email account, usually redirecting supplier or executive payments.","TYP"],
+["Below-the-line testing","Sampling activity just under a scenario threshold to see what would be missed before thresholds are raised.","TM"],
+["Beneficial owner","Each individual owning 25% or more of a legal entity customer (ownership prong), plus one individual with significant control (control prong).","CDD"],
+["Black Market Peso Exchange","A trade-based scheme where drug dollars in the US are sold to brokers who pay importers' suppliers, delivering local currency to traffickers abroad.","TYP"],
+["Blocking","Freezing property in which a sanctioned party has an interest. Blocked property must be reported to OFAC within 10 business days.","SAN"],
+["BSA","Bank Secrecy Act (1970), the core US recordkeeping and reporting law; 31 U.S.C. Chapter 53, implemented in 31 CFR Chapter X.","REG"],
+["BSA officer","The individual designated to coordinate and monitor day-to-day AML/CFT compliance, with sufficient authority and resources.","REG"],
+["Bust-out fraud","A customer builds a good credit history, then maxes out credit lines and disappears without repaying.","TYP"],
+["Case","A grouped investigation of related alerts, usually by customer or network.","TM"],
+["Cash-intensive business","A business that takes in a high proportion of cash, such as restaurants, convenience stores or car washes. Often subject to EDD.","CDD"],
+["CDD","Customer due diligence: identifying and verifying customers and beneficial owners, understanding the relationship, building a risk profile and monitoring on an ongoing basis.","CDD"],
+["CDD Rule","FinCEN's 2016 rule (31 CFR 1010.230) adding beneficial ownership and explicit CDD requirements for covered institutions.","REG"],
+["Check kiting","Exploiting the float between banks by writing checks between accounts with insufficient funds to inflate balances.","TYP"],
+["CHIPS","Clearing House Interbank Payments System: a private US system for large-value dollar payments, widely used for international transfers.","PAY"],
+["CIP","Customer Identification Program: collecting name, date of birth, address and ID number and verifying identity at account opening.","CDD"],
+["Civil money penalty","A monetary fine imposed by a regulator for BSA, AML or sanctions violations.","REG"],
+["CMIR","Report of International Transportation of Currency or Monetary Instruments, required when more than $10,000 crosses the US border.","REG"],
+["Commingling","Mixing illicit funds with legitimate business revenue so they appear to be earnings.","TYP"],
+["Consent order","A formal enforcement agreement between a regulator and an institution requiring specific remediation.","REG"],
+["Consolidated Sanctions List","OFAC's combined list of non-SDN sanctions lists, published alongside the SDN List.","SAN"],
+["Continuing activity review","A follow-up review after a SAR to see if suspicious activity has continued. FinCEN's October 2025 FAQs clarify it is not mandatory.","INV"],
+["Control prong","The CDD requirement to identify one individual with significant responsibility to control or manage a legal entity.","CDD"],
+["Corporate Transparency Act","Part of the AML Act of 2020 creating beneficial ownership reporting to FinCEN. Under a March 2025 interim rule, reporting applies to certain foreign companies rather than US companies.","REG"],
+["Correspondent account","An account a bank provides to another financial institution to receive deposits, make payments or handle transactions on its behalf.","PAY"],
+["Cover payment","A method of international payment where the bank-to-bank settlement message is separate from the customer payment message; transparency rules require originator and beneficiary details to travel with it.","PAY"],
+["CTR","Currency Transaction Report for cash over $10,000 in a business day, filed within 15 days.","REG"],
+["Cuckoo smurfing","Criminals arrange for legitimate incoming remittances to be paid with illicit cash deposited into the recipient's account, without the recipient's knowledge.","TYP"],
+["Customer risk rating","A score or tier (for example low, medium, high) summarising a customer's money laundering and terrorist financing risk.","CDD"],
+["CVC kiosk","A convertible virtual currency kiosk, or crypto ATM, that converts cash to crypto. Often used in scams.","TYP"],
+["De-risking","Ending or restricting relationships with whole categories of customers to avoid risk, rather than managing risk case by case.","CDD"],
+["Deferred prosecution agreement","An agreement where prosecutors suspend charges if the institution meets conditions such as penalties, remediation and a monitor.","REG"],
+["Dormant account","An account with no customer-initiated activity for an extended period. Sudden reactivation is a common scenario.","TYP"],
+["Dual-use goods","Items with both civilian and military applications, relevant to proliferation financing and export controls.","SAN"],
+["EDD","Enhanced due diligence: extra scrutiny for higher-risk relationships, such as source of wealth checks, senior approval and more frequent reviews.","CDD"],
+["Egmont Group","An international network of financial intelligence units that shares information to fight laundering and terrorist financing.","REG"],
+["Elder financial exploitation","The illegal or improper use of an older adult's funds, property or assets, often by someone trusted. FinCEN key term EFE FIN-2022-A002.","TYP"],
+["Entity resolution","Linking records that belong to the same person or company across systems, so monitoring sees the whole relationship.","TM"],
+["Event-driven review","A KYC review triggered by an event such as adverse media, a SAR, a large unexpected transaction or a change in ownership.","CDD"],
+["Exempt person","A customer whose cash transactions are exempt from CTR filing under specific rules, after a Designation of Exempt Person is filed. Monitoring still applies.","REG"],
+["False negative","Suspicious activity that monitoring failed to alert on.","TM"],
+["False positive","An alert or screening hit that, after review, is explained and not suspicious.","TM"],
+["FATF","Financial Action Task Force, the intergovernmental body that sets global AML/CFT standards (the 40 Recommendations).","REG"],
+["FATF Recommendations","The 40 international standards for AML/CFT systems that countries are assessed against in mutual evaluations.","REG"],
+["FBAR","Report of Foreign Bank and Financial Accounts, filed by US persons whose foreign accounts exceed $10,000 in aggregate during the year.","REG"],
+["FedNow","The Federal Reserve's instant payment service, launched in 2023, settling payments in seconds around the clock.","PAY"],
+["Fedwire","The Federal Reserve's real-time gross settlement system for large-value domestic wire transfers.","PAY"],
+["FinCEN","Financial Crimes Enforcement Network, the Treasury bureau that administers the BSA and receives SARs and CTRs.","REG"],
+["FIU","Financial intelligence unit: a national agency that receives and analyses suspicious transaction reports. FinCEN is the US FIU.","REG"],
+["Form 8300","Report filed by trades or businesses that receive more than $10,000 in cash in one transaction or related transactions.","REG"],
+["Front company","A real or apparently real business used to hide illicit activity or funds.","TYP"],
+["Funnel account","An account receiving deposits in one place, often cash in several locations, with funds withdrawn quickly elsewhere.","TYP"],
+["Fuzzy matching","Screening logic that matches similar, misspelled or transliterated names, increasing both true and false hits.","SAN"],
+["General licence","OFAC authorisation allowing a category of otherwise prohibited transactions without a specific application.","SAN"],
+["Grey list","FATF jurisdictions under increased monitoring while they fix strategic AML/CFT deficiencies.","SAN"],
+["Hawala","An informal value transfer system based on trust between brokers, settling balances without moving money directly.","TYP"],
+["High-risk jurisdiction","A country or territory with weak AML/CFT controls, high corruption, sanctions or terrorism exposure, as assessed by FATF lists and internal ratings.","SAN"],
+["Human smuggling","Facilitating illegal entry of people across borders for payment; a crime against a state's borders.","TYP"],
+["Human trafficking","Exploiting people through force, fraud or coercion for labour or commercial sex; a crime against the person.","TYP"],
+["Independent testing","Periodic review of the AML/CFT program by internal audit or a qualified outside party.","REG"],
+["Integration","The stage where laundered funds re-enter the economy looking legitimate.","TYP"],
+["IVTS","Informal value transfer system, such as hawala, operating outside the regulated banking system.","TYP"],
+["Keep-open letter","A law enforcement request asking a bank to keep a suspicious account open to support an investigation.","INV"],
+["Key term","A phrase from a FinCEN advisory that filers include in SARs so FinCEN can identify filings about that threat.","INV"],
+["Kleptocracy","Rule by officials who use their power to steal public wealth. FinCEN key term CORRUPTION FIN-2022-A001.","TYP"],
+["KYC","Know your customer: understanding who the customer is, what they do and the risk they present.","CDD"],
+["KYCC","Know your customer's customer: understanding the customers of a client, relevant for correspondent banking and payment processors.","CDD"],
+["Layering","Moving funds through transactions, accounts and jurisdictions to obscure their origin.","TYP"],
+["Loan-back","A scheme where criminals 'borrow' their own laundered money, making repayments that look like legitimate debt service.","TYP"],
+["Lookback period","The time window a scenario or investigation reviews, for example 30, 90 or 180 days.","TM"],
+["Machine learning model","A monitoring model that learns patterns from data to score or detect unusual activity. Needs explainability and validation.","TM"],
+["Mixer","A crypto service that pools and redistributes coins to obscure their trail; also called a tumbler.","TYP"],
+["Model risk management","Governance of models through documented design, independent validation, performance monitoring and change control.","TM"],
+["Money Laundering Control Act","1986 law that made money laundering a federal crime and prohibited structuring.","REG"],
+["Money mule","Someone who receives and passes on funds for others, knowingly or not.","TYP"],
+["Monetary instrument log","Record of cash purchases of money orders, cashier's checks and similar instruments from $3,000 to $10,000, with the buyer's identification.","REG"],
+["Monitorship","An independent monitor appointed under an enforcement agreement to oversee remediation.","REG"],
+["MSB","Money services business: check cashers, money transmitters, currency exchangers and similar firms registered with FinCEN.","CDD"],
+["Nacha","The organisation that writes the operating rules for the US ACH network.","PAY"],
+["National priorities","FinCEN's eight AML/CFT priorities (2021): corruption, cybercrime, terrorist financing, fraud, transnational crime, drug trafficking, human trafficking and smuggling, and proliferation financing.","REG"],
+["Nested account","When a foreign bank uses its correspondent account at a US bank to provide services to other foreign banks, hiding the underlying institutions.","PAY"],
+["Nominee","A person who holds a position or assets on behalf of someone else, hiding the true owner or controller.","CDD"],
+["ODFI","Originating Depository Financial Institution: the bank that sends an ACH entry on behalf of its customer.","PAY"],
+["OFAC","Office of Foreign Assets Control, the Treasury office that administers and enforces US economic sanctions.","SAN"],
+["Ongoing monitoring","Continuous review of customer activity and information to identify suspicious activity and keep KYC current.","CDD"],
+["OSINT","Open-source intelligence: research using publicly available information.","INV"],
+["Over-invoicing","Billing above market value for goods or services to move extra value to the seller.","TYP"],
+["Ownership prong","The CDD requirement to identify each individual owning 25% or more of a legal entity.","CDD"],
+["Pass-through","High inflow and outflow with little retained in the account.","TYP"],
+["Payable-through account","A correspondent account that a foreign bank's customers can use directly to make payments, carrying elevated risk.","PAY"],
+["Peer group analysis","Comparing a customer's activity with similar customers to identify outliers.","TM"],
+["PEP","Politically exposed person: someone entrusted with a prominent public function, plus family and close associates.","SAN"],
+["Periodic review","Scheduled refresh of a customer's KYC and risk rating, more frequent for higher-risk customers.","CDD"],
+["Phantom shipment","Payment for goods that are never shipped, used to move value under the cover of trade.","TYP"],
+["Pig butchering","A relationship investment scam in which fraudsters build trust online and steer victims into fake crypto platforms. FinCEN key term FIN-2023-PIGBUTCHERING.","TYP"],
+["PIC","Private investment company: a holding company used by wealthy individuals to hold assets, often in offshore jurisdictions.","CDD"],
+["Placement","Illicit funds, often cash, first entering the financial system.","TYP"],
+["Potential match","A screening hit that cannot yet be confirmed or ruled out and requires further review or escalation.","SAN"],
+["Precision","The share of alerts that prove productive, for example leading to a case or SAR.","TM"],
+["Predicate offence","The underlying crime that generates illicit proceeds; in US law, 'specified unlawful activity'.","TYP"],
+["Private banking","Personalised services for high-net-worth customers, often with complex structures and international activity.","CDD"],
+["Privacy coin","A cryptocurrency designed to hide transaction details such as sender, receiver or amount.","TYP"],
+["Proliferation financing","Providing funds or financial services for weapons of mass destruction programmes.","SAN"],
+["RDFI","Receiving Depository Financial Institution: the bank that receives an ACH entry and posts it to its customer's account.","PAY"],
+["RDC","Remote deposit capture: depositing checks by scanning them, which can be abused for duplicate or counterfeit deposits.","PAY"],
+["Rejecting","Refusing to process a prohibited transaction that does not involve blockable property, and reporting it to OFAC.","SAN"],
+["RFI","Request for information sent to a customer to resolve gaps in an investigation, worded neutrally to avoid tipping off.","INV"],
+["Risk appetite","The amount and type of risk an institution is willing to accept, set by its board.","REG"],
+["Risk assessment","An institution's analysis of its money laundering, terrorist financing and sanctions risks across customers, products, channels and geographies.","REG"],
+["Romance scam","A fraud in which the scammer builds a fake relationship to obtain money, often from older or isolated victims.","TYP"],
+["Round-tripping","Moving money out and back in disguised as investment, loans or trade to create apparently legitimate income.","TYP"],
+["RTP","The Real-Time Payments network operated by The Clearing House, settling instant payments around the clock.","PAY"],
+["Safe harbor","Protection from civil liability for good-faith SAR disclosures under 31 U.S.C. § 5318(g)(3).","REG"],
+["SAR","Suspicious Activity Report filed with FinCEN when an institution knows, suspects or has reason to suspect illicit activity.","INV"],
+["SAR narrative","The written section of a SAR describing who, what, when, where, why and how, in clear chronological order.","INV"],
+["Scenario","Monitoring logic aimed at one risk pattern, defined by parameters such as amount, count and time window.","TM"],
+["SDN List","OFAC's Specially Designated Nationals and Blocked Persons List.","SAN"],
+["Segmentation","Grouping customers so monitoring thresholds fit each group's normal activity.","TM"],
+["Shell bank","A bank with no physical presence in any country. US banks may not maintain correspondent accounts for foreign shell banks.","PAY"],
+["Shell company","An entity with no significant operations or assets, which may be used to hide ownership or move funds.","TYP"],
+["Shelf company","A company formed and left inactive, then sold to give the buyer an apparently established history.","TYP"],
+["Smurfing","Structuring carried out by several people, each depositing amounts below reporting thresholds.","TYP"],
+["Source of funds","Where a specific amount of money in a transaction came from.","CDD"],
+["Source of wealth","How a customer built their overall wealth.","CDD"],
+["Specific licence","A written OFAC authorisation for a particular transaction, granted on application.","SAN"],
+["Strict liability","Liability without intent. OFAC sanctions violations can occur even when a bank did not know it was dealing with a sanctioned party.","SAN"],
+["Structuring","Splitting or timing cash transactions to evade reporting; a crime under 31 U.S.C. § 5324.","REG"],
+["SWIFT","The global messaging network banks use to send payment instructions; it carries messages, not money.","PAY"],
+["Synthetic identity","A fabricated identity combining real and fake information, such as a real SSN with a false name.","TYP"],
+["TBML","Trade-based money laundering: moving value through misrepresented trade.","TYP"],
+["Third-party payment processor","A business that processes payments for merchants, often through its own bank account. Requires KYCC.","PAY"],
+["Three lines of defence","Risk governance model: the business (first), compliance and risk (second) and internal audit (third).","REG"],
+["Threshold","The parameter value at which a scenario fires, such as a dollar amount or transaction count.","TM"],
+["Tipping off","Disclosing that a SAR exists or is being considered; prohibited under 31 U.S.C. § 5318(g)(2).","INV"],
+["Transaction monitoring","Automated and manual review of customer activity to detect unusual or potentially suspicious behaviour.","TM"],
+["Travel Rule","Requirement that funds transfers of $3,000 or more carry originator and beneficiary information to the next institution.","REG"],
+["True match","A screening hit confirmed to be the listed person or entity.","SAN"],
+["Tuning","Adjusting scenario thresholds and logic using evidence, tested above and below the line, to balance coverage and false positives.","TM"],
+["U-turn transaction","Funds that leave a country and return through other jurisdictions, sometimes used to evade sanctions.","SAN"],
+["Under-invoicing","Billing below market value to move value to the buyer.","TYP"],
+["Unhosted wallet","A crypto wallet controlled directly by its user rather than held at an exchange or other service provider.","TYP"],
+["USA PATRIOT Act","2001 law that added CIP, correspondent and private banking due diligence, Section 311 special measures and information sharing under Section 314.","REG"],
+["VASP","Virtual asset service provider: an exchange, custodian or similar business dealing in virtual assets.","PAY"],
+["Velocity","How quickly funds move through an account, or how many transactions occur in a period.","TM"],
+["Wire stripping","Removing or altering information in payment messages to hide sanctioned parties or jurisdictions.","SAN"],
+["Wolfsberg Group","An association of global banks that publishes guidance on financial crime risk management.","REG"]
 ];
 
 const SOURCES=[
@@ -1188,14 +1322,25 @@ function tests(){const v=$("#v-tests");
  $("#nx").onclick=()=>{z.i++;tests();$("#main").scrollTop=0};$("#quit").onclick=()=>{QZ=null;tests()}}
 
 /* ---------- REFERENCE ---------- */
-let GQ="";
+let GQ="",GC="";
 function ref(){const v=$("#v-ref");
- v.innerHTML=`<div class="head"><div><h1>Reference</h1><p>Glossary of core terms and the sources behind this app. Lists such as FATF jurisdictions change, so check the live source before citing one in a case.</p></div></div>
- <div class="grid2" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start"><div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><h3 style="margin:0">Glossary</h3><input class="search" id="gq" type="search" placeholder="Search terms" value="${esc(GQ)}" aria-label="Search glossary"></div><dl class="gl" id="gl"></dl></div>
- <div class="panel"><h3>Sources</h3><ul style="margin:0;padding-left:18px;font-size:15px">${SOURCES.map(s=>`<li style="margin-bottom:10px">${s[1].indexOf("http")===0?`<a href="${s[1]}" target="_blank" rel="noopener">${esc(s[0])}</a>`:`${esc(s[0])}<br><span class="lbl">${esc(s[1])}</span>`}</li>`).join("")}</ul>
- <h3 style="margin:24px 0 10px">Your data</h3><p class="lbl" style="margin-bottom:12px">Progress is saved in this browser only.</p><button class="btn ghost sm" id="wipe">Reset all progress</button><span class="lbl" id="wm" style="margin-left:10px"></span></div></div>`;
- const fill=()=>{const g=GQ.toLowerCase();const r=GLOSS.filter(x=>(x[0]+x[1]).toLowerCase().includes(g));$("#gl").innerHTML=r.length?r.map(x=>`<dt>${esc(x[0])}</dt><dd>${esc(x[1])}</dd>`).join(""):`<dt>No match</dt><dd>Try another term.</dd>`};fill();
+ v.innerHTML=`<div class="head"><div><h1>Reference</h1><p>${GLOSS.length} glossary terms across ${Object.keys(GCAT).length} topics, and the official sources behind the lessons. Lists such as FATF jurisdictions change, so check the live source before citing one in a case.</p></div></div>
+ <div class="refgrid"><div class="panel"><div class="row" style="justify-content:space-between;margin-bottom:14px"><h3 style="margin:0">Glossary</h3><input class="search" id="gq" type="search" placeholder="Search terms and definitions" value="${esc(GQ)}" aria-label="Search glossary"></div>
+ <div class="row" id="gc" style="margin-bottom:12px"><button class="fchip" data-c="" aria-pressed="${!GC}">All</button>${Object.entries(GCAT).map(([k,t])=>`<button class="fchip" data-c="${k}" aria-pressed="${GC===k}">${t}</button>`).join("")}</div>
+ <nav class="az" id="az" aria-label="Jump to letter"></nav><p class="lbl" id="gn" role="status" style="margin:6px 0 4px"></p><div id="gl"></div></div>
+ <div class="stack"><div class="panel"><h3>Sources</h3><ul style="margin:0;padding-left:18px;font-size:15px">${SOURCES.map(s=>`<li style="margin-bottom:10px"><a href="${s[1]}" target="_blank" rel="noopener">${esc(s[0])}</a></li>`).join("")}</ul></div>
+ <div class="panel"><h3>Your data</h3><p class="lbl" style="margin-bottom:12px">Progress is saved in this browser only.</p><button class="btn ghost sm" id="wipe">Reset all progress</button><span class="lbl" id="wm" style="margin-left:10px"></span></div></div></div>`;
+ const sorted=GLOSS.slice().sort((x,y)=>x[0].localeCompare(y[0],"en",{sensitivity:"base",numeric:true}));
+ const fill=()=>{const g=GQ.toLowerCase().trim();const r=sorted.filter(x=>(!GC||x[2]===GC)&&(!g||(x[0]+" "+x[1]).toLowerCase().includes(g)));
+  const groups={};r.forEach(x=>{const L=/[a-z]/i.test(x[0][0])?x[0][0].toUpperCase():"#";(groups[L]=groups[L]||[]).push(x)});
+  const keys=Object.keys(groups);
+  $("#gn").textContent=r.length+" of "+GLOSS.length+" terms";
+  $("#az").innerHTML=keys.map(k=>`<a href="#g-${k==="#"?"num":k}" data-az="${k==="#"?"num":k}">${k}</a>`).join("");
+  $("#gl").innerHTML=r.length?keys.map(k=>`<h4 class="gh" id="g-${k==="#"?"num":k}">${k}</h4><dl class="gl">${groups[k].map(x=>`<dt>${esc(x[0])}<span class="gcat">${GCAT[x[2]]}</span></dt><dd>${esc(x[1])}</dd>`).join("")}</dl>`).join(""):`<p class="empty">No terms match. Try another word or choose All.</p>`;
+  $("#az").querySelectorAll("[data-az]").forEach(a=>a.onclick=e=>{e.preventDefault();const t=document.getElementById("g-"+a.dataset.az);if(t)t.scrollIntoView({block:"start"})})};
+ fill();
  $("#gq").oninput=e=>{GQ=e.target.value;fill()};
+ $("#gc").onclick=e=>{const b=e.target.closest("[data-c]");if(!b)return;GC=b.dataset.c;$("#gc").querySelectorAll("[data-c]").forEach(x=>x.setAttribute("aria-pressed",x===b));fill()};
  let armed=false;$("#wipe").onclick=()=>{if(!armed){armed=true;$("#wm").textContent="Click again to confirm.";return}P={done:{},cases:{},quiz:{},sess:{},cfg:null,missed:{}};save();CFG=clone(DEF);compute();$("#wm").textContent="Progress reset."}}
 
 route();
